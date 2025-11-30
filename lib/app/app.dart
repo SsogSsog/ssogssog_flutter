@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/app/routes.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 
 class MyApp extends StatelessWidget {
@@ -6,14 +7,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: '주식 쏙쏙',
       theme: AppTheme.lightTheme,
-      home: const Scaffold(
-        body: Center(
-          child: Text('시작 페이지'),
-        ),
-      ),
+      routerConfig: router,
     );
   }
 }
