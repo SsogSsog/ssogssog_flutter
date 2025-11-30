@@ -1,0 +1,14 @@
+language: "ko-KR"
+enable_free_tier: true
+
+reviews:
+  profile: "chill"              # 리뷰 톤 (chill / assertive 등)
+  high_level_summary: true      # 요약 코멘트
+  request_changes_workflow: true
+  review_status: true
+  auto_review:
+    enabled: true               # PR 올라오면 자동 리뷰
+    drafts: true                # draft PR도 리뷰할지 여부
+
+chat:
+  auto_reply: true              # @coderabbitai에게 질문 시 자동 응답
