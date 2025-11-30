@@ -28,22 +28,30 @@ final GoRouter router = GoRouter(
         // 홈 화면 라우트
         GoRoute(
           path: '/',
-          builder: (context, state) => const HomePage(),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: HomePage(),
+          ),
         ),
         // 조건검색 화면 라우트
         GoRoute(
           path: '/screener',
-          builder: (context, state) => const ScreenerPage(),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: ScreenerPage(),
+          ),
         ),
         // 보관함 화면 라우트
         GoRoute(
           path: '/vault',
-          builder: (context, state) => const VaultPage(),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: VaultPage(),
+          ),
         ),
         // 설정 화면 라우트
         GoRoute(
           path: '/settings',
-          builder: (context, state) => const SettingsPage(),
+          pageBuilder: (context, state) => const NoTransitionPage(
+            child: SettingsPage(),
+          ),
         ),
       ],
     ),
