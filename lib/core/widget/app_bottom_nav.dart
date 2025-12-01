@@ -18,41 +18,52 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: AppColors.white,
-      elevation: 5,
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            offset: const Offset(0, -5),
+            blurRadius: 10,
+          )
+        ]
+      ),
+      child: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: onTap,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: AppColors.white,
+        elevation: 5,
 
-      iconSize: 30,
+        iconSize: 30,
 
-      // 아이콘 색상 설정
-      selectedItemColor: AppColors.primaryBlue, // 선택 시 색상
-      unselectedItemColor: AppColors.greyText,    // 미선택 시 색상
+        // 아이콘 색상 설정
+        selectedItemColor: AppColors.primaryBlue, // 선택 시 색상
+        unselectedItemColor: AppColors.greyText,    // 미선택 시 색상
 
-      // 라벨 숨기기
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
+        // 라벨 숨기기
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
 
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: '홈',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.diamond),
-          label: '조건검색',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.folder),
-          label: '보관함',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: '설정',
-        ),
-      ],
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: '홈',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.diamond),
+            label: '조건검색',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.folder),
+            label: '보관함',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: '설정',
+          ),
+        ],
+      ),
     );
   }
 }
