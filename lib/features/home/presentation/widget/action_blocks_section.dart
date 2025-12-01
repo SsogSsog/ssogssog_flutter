@@ -173,7 +173,6 @@ class _SmallBlock extends StatelessWidget {
                   title,
                   style: TextStyle(
                     color: textColor,
-                    // 🚨 [수정] 20 -> 17
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                   ),
