@@ -41,7 +41,7 @@ class AppTheme {
         centerTitle: true,                              // 제목 중앙 정렬
         titleTextStyle: TextStyle(
           color: AppColors.black,
-          fontSize: 18,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
         ),
         iconTheme: IconThemeData(
