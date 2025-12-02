@@ -62,7 +62,7 @@ class _VaultPageState extends State<VaultPage> {
             padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             child: OutlinedButton(
               onPressed: () {
-                print("버튼 클릭됨");
+
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 18),

@@ -21,6 +21,7 @@ class WatchStockCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 등락률이 '+'로 시작하면 상승(Red), 아니면 하락(Blue)으로 판단
+    // TODO 실제 데이터 기반으로 해당 조건 검토 해보기
     final bool isPlus = fluctuationRate.startsWith('+');
     final Color stateColor = isPlus ? const Color(0xFFFF6B6B) : const Color(0xFF4D96FF);
     final Color stateBgColor = isPlus ? const Color(0xFFFFEBEE) : const Color(0xFFE3F2FD);
