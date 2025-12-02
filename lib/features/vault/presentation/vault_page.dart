@@ -57,7 +57,38 @@ class _VaultPageState extends State<VaultPage> {
         children: [
           StrategyCard(),
           StrategyCard(),
-
+          // 새로운 전략 만들기 버튼
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            child: OutlinedButton(
+              onPressed: () {
+                print("버튼 클릭됨");
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                backgroundColor: const Color(0xFFF8F9FA), // 아주 연한 회색 배경
+                side: BorderSide(color: Colors.grey[300]!, width: 1.5), // 회색 테두리
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16), // 카드와 같은 둥글기
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_rounded, color: Colors.grey[600]),
+                  const SizedBox(width: 8),
+                  Text(
+                    '새로운 전략 만들기',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       );
     } else {
