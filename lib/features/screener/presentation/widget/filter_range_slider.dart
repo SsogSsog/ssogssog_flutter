@@ -7,6 +7,8 @@ class FilterRangeSlider extends StatefulWidget {
   final String subtitle;
   final double min;
   final double max;
+  final double step;
+  final String unit;
   final Function(RangeValues) onChanged;
 
   const FilterRangeSlider({
@@ -16,6 +18,8 @@ class FilterRangeSlider extends StatefulWidget {
     required this.min,
     required this.max,
     required this.onChanged,
+    this.step = 1,
+    this.unit = '',
   });
 
   @override
@@ -28,52 +32,68 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
   @override
   void initState() {
     super.initState();
-    // 초기값을 전체 범위로 설정
-    _currentValues = RangeValues(widget.min, widget.max);
+    _currentValues = RangeValues(widget.min, widget.max); // 전체
+  }
+
+  String _rangeText() {
+    final isAll = _currentValues.start <= widget.min && _currentValues.end >= widget.max;
+    if (isAll) return '전체';
+    return '${_currentValues.start.toInt()} ~ ${_currentValues.end.toInt()}${widget.unit}';
   }
 
   @override
   Widget build(BuildContext context) {
+    final divisions = ((widget.max - widget.min) / widget.step).round();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-                if (widget.subtitle.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2.0),
-                    child: Text(widget.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.greyText)),
-                  ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  if (widget.subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(widget.subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B93A1))),
+                  ],
+                ],
+              ),
             ),
-            // 현재 선택된 범위를 표시
-            Text(
-              '${_currentValues.start.toInt()} ~ ${_currentValues.end.toInt()}%',
-              style: const TextStyle(fontSize: 15, color: AppColors.primaryBlue, fontWeight: FontWeight.bold),
-            ),
+            Text(_rangeText(), style: const TextStyle(fontSize: 14, color: AppColors.primaryBlue, fontWeight: FontWeight.w800)),
           ],
         ),
         const SizedBox(height: 8),
-        RangeSlider(
-          values: _currentValues,
-          min: widget.min,
-          max: widget.max,
-          divisions: (widget.max - widget.min).toInt(),
-          labels: RangeLabels(
-            _currentValues.start.round().toString(),
-            _currentValues.end.round().toString(),
+
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 4,
+            overlayShape: SliderComponentShape.noOverlay,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+            activeTrackColor: AppColors.primaryBlue,
+            inactiveTrackColor: const Color(0xFFE6EAF3),
           ),
-          onChanged: (RangeValues values) {
-            setState(() {
-              _currentValues = values;
-            });
-            widget.onChanged(values);
-          },
+          child: RangeSlider(
+            values: _currentValues,
+            min: widget.min,
+            max: widget.max,
+            divisions: divisions,
+            labels: RangeLabels(
+              _currentValues.start.round().toString(),
+              _currentValues.end.round().toString(),
+            ),
+            onChanged: (v) {
+              double snap(double x) => (x / widget.step).round() * widget.step;
+              final next = RangeValues(snap(v.start), snap(v.end));
+              setState(() => _currentValues = RangeValues(
+                next.start.clamp(widget.min, widget.max),
+                next.end.clamp(widget.min, widget.max),
+              ));
+              widget.onChanged(_currentValues);
+            },
+          ),
         ),
       ],
     );
