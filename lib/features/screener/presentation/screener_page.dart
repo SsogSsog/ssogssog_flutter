@@ -3,7 +3,6 @@ import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 import 'package:ssogssog_flutter/core/widget/common_app_bar.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_chip_group.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_range_slider.dart';
-import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_section_header.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_slider.dart';
 
 class ScreenerPage extends StatelessWidget {
