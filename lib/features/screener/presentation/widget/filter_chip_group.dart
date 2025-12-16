@@ -29,8 +29,8 @@ class _FilterChipGroupState extends State<FilterChipGroup> {
         Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 8.0, // 칩 사이의 가로 간격
-          runSpacing: 8.0, // 칩 사이의 세로 간격
+          spacing: 8.0,
+          runSpacing: 8.0,
           children: widget.options.map((option) {
             final isSelected = _selectedOption == option;
             return ChoiceChip(
@@ -42,9 +42,11 @@ class _FilterChipGroupState extends State<FilterChipGroup> {
                 });
                 widget.onSelected(_selectedOption);
               },
+              // [핵심 수정] 체크 아이콘을 표시하지 않도록 설정
+              showCheckmark: false, 
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppColors.primaryBlue,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.white : Colors.black.withOpacity(0.7),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
               backgroundColor: AppColors.lightBlueBackground,
               selectedColor: AppColors.primaryBlue,
@@ -52,7 +54,8 @@ class _FilterChipGroupState extends State<FilterChipGroup> {
                 borderRadius: BorderRadius.circular(16),
                 side: const BorderSide(color: Colors.transparent),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              // 아이콘이 없으므로 좌우 패딩을 더 주어 보기 좋게 만듭니다.
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), 
             );
           }).toList(),
         ),
