@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/core/widget/common_app_bar.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_chip_group.dart';
+import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_range_slider.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_section_header.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_slider.dart';
 
@@ -32,15 +33,10 @@ class ScreenerPage extends StatelessWidget {
               options: const ['대형주', '중형주', '소형주'],
               onSelected: (selected) {},
             ),
-
-            // 섹션별 영역을 나누는 Divider
+            
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24.0), // 위아래로 여백을 주어 공간 확보
-              child: Divider(
-                thickness: 2, // 두께는 1로 얇게
-                height: 1,    // Divider 자체의 높이도 1로 설정
-                color: Color(0xFFF0F0F0), // 연한 회색
-              ),
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: Divider(thickness: 1, height: 1, color: Color(0xFFF0F0F0)),
             ),
 
             const FilterSectionHeader(title: '가치 & 건전성'),
@@ -68,7 +64,36 @@ class ScreenerPage extends StatelessWidget {
               onChanged: (value) {},
             ),
 
-            // TODO: '성장성 & 수급' 섹션이 여기에 들어옵니다.
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: Divider(thickness: 1, height: 1, color: Color(0xFFF0F0F0)),
+            ),
+
+            const FilterSectionHeader(title: '성장성 & 수급'),
+            FilterRangeSlider(
+              title: '매출액 성장률',
+              subtitle: '',
+              min: 0,
+              max: 100,
+              onChanged: (values) {},
+            ),
+            const SizedBox(height: 16),
+            FilterSlider(
+              title: '순이익 성장률',
+              subtitle: '',
+              min: 0,
+              max: 100,
+              onChanged: (value) {},
+            ),
+            const SizedBox(height: 16),
+            FilterRangeSlider(
+              title: '외국인 보유율',
+              subtitle: '',
+              min: 0,
+              max: 100,
+              onChanged: (values) {},
+            ),
+            const SizedBox(height: 48), // 하단 버튼과의 여백 확보
           ],
         ),
       ),
