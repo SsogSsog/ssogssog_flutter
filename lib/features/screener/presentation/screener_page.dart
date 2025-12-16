@@ -16,12 +16,20 @@ class ScreenerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CommonAppBar(title: '필터 설정'),
-      backgroundColor: const Color(0xFFF6F7FB), // 화면 전체 배경을 아주 연하게
+      backgroundColor: const Color(0xFFF6F7FB),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(_pageH, 16, _pageH, 120), // 하단 버튼 여유
+        padding: const EdgeInsets.fromLTRB(_pageH, 16, _pageH, 120),
         children: [
+          // ✅ [추가] 상단 안내 멘트(배너)
+          const _InfoBanner(
+            text: '아래의 필터로 주식을 검색할 수 있습니다. 기준 값은 전일종가 기준으로 계산됩니다.',
+          ),
+          const SizedBox(height: 12),
+
           _SectionCard(
             title: '기본 정보',
+            // ✅ [추가] 섹션별 안내 멘트
+            subtitle: '아무것도 선택하지 않으면 전체 종목을 대상으로 합니다.',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -31,7 +39,7 @@ class ScreenerPage extends StatelessWidget {
                     '1천원 미만', '1천~5천원', '5천~1만원',
                     '1만~3만원', '3만~10만원', '10만원 이상'
                   ],
-                  columns: 3, // 아래 (B)에서 추가
+                  columns: 3,
                   onSelected: (selected) {},
                 ),
                 const SizedBox(height: 20),
@@ -124,7 +132,6 @@ class ScreenerPage extends StatelessWidget {
           ),
         ],
       ),
-
       bottomNavigationBar: _BottomApplyBar(
         label: '검색하기',
         onPressed: () {},
@@ -133,11 +140,17 @@ class ScreenerPage extends StatelessWidget {
   }
 }
 
+
 class _SectionCard extends StatelessWidget {
   final String title;
+  final String? subtitle; // ✅ 추가
   final Widget child;
 
-  const _SectionCard({required this.title, required this.child});
+  const _SectionCard({
+    required this.title,
+    this.subtitle,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,14 +164,22 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 섹션 타이틀 + (선택) 섹션 초기화 버튼 자리
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              // TextButton(onPressed: () {}, child: const Text('초기화')),
-            ],
-          ),
+          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+
+          // ✅ subtitle이 있을 때만 출력
+          if (subtitle != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              subtitle!,
+              style: const TextStyle(
+                fontSize: 12.5,
+                height: 1.3,
+                color: Color(0xFF8B93A1),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+
           const SizedBox(height: 14),
           child,
         ],
@@ -166,6 +187,7 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
+
 
 class _BottomApplyBar extends StatelessWidget {
   final String label;
@@ -203,6 +225,45 @@ class _BottomApplyBar extends StatelessWidget {
             child: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InfoBanner extends StatelessWidget {
+  final String text;
+
+  const _InfoBanner({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEDEFF5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Icon(Icons.tune, size: 18, color: Color(0xFF8B93A1)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.35,
+                color: Color(0xFF2E3137),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
