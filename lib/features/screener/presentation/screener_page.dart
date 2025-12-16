@@ -12,10 +12,11 @@ class ScreenerPage extends StatelessWidget {
     return Scaffold(
       appBar: const CommonAppBar(title: '필터 설정'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 24),
             const FilterSectionHeader(title: '기본 정보'),
             FilterChipGroup(
               title: '가격',
@@ -30,6 +31,16 @@ class ScreenerPage extends StatelessWidget {
               title: '시가총액',
               options: const ['대형주', '중형주', '소형주'],
               onSelected: (selected) {},
+            ),
+
+            // 섹션별 영역을 나누는 Divider
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0), // 위아래로 여백을 주어 공간 확보
+              child: Divider(
+                thickness: 2, // 두께는 1로 얇게
+                height: 1,    // Divider 자체의 높이도 1로 설정
+                color: Color(0xFFF0F0F0), // 연한 회색
+              ),
             ),
 
             const FilterSectionHeader(title: '가치 & 건전성'),
