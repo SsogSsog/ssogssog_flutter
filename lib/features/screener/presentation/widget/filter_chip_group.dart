@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 
-/// 여러 선택지 중 하나를 고르는 칩 그룹 위젯
 class FilterChipGroup extends StatefulWidget {
   final String title;
   final List<String> options;
   final Function(String?) onSelected;
+  final int columns; // 추가
 
   const FilterChipGroup({
     super.key,
     required this.title,
     required this.options,
     required this.onSelected,
+    this.columns = 0, // 0이면 기존 Wrap 동작
   });
 
   @override
@@ -26,38 +27,61 @@ class _FilterChipGroupState extends State<FilterChipGroup> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children: widget.options.map((option) {
-            final isSelected = _selectedOption == option;
-            return ChoiceChip(
-              label: Text(option),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  _selectedOption = selected ? option : null;
-                });
-                widget.onSelected(_selectedOption);
-              },
-              // [핵심 수정] 체크 아이콘을 표시하지 않도록 설정
-              showCheckmark: false, 
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.black.withOpacity(0.7),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              ),
-              backgroundColor: AppColors.lightBlueBackground,
-              selectedColor: AppColors.primaryBlue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: Colors.transparent),
-              ),
-              // 아이콘이 없으므로 좌우 패딩을 더 주어 보기 좋게 만듭니다.
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), 
+        Text(widget.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 10),
+
+        LayoutBuilder(
+          builder: (context, c) {
+            final spacing = 10.0;
+            final runSpacing = 10.0;
+
+            Widget chipFor(String option, double? fixedWidth) {
+              final isSelected = _selectedOption == option;
+
+              final chip = ChoiceChip(
+                label: Text(option, textAlign: TextAlign.center),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() => _selectedOption = selected ? option : null);
+                  widget.onSelected(_selectedOption);
+                },
+                showCheckmark: false,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+                labelStyle: TextStyle(
+                  fontSize: 13,
+                  color: isSelected ? Colors.white : const Color(0xFF3A3A3A),
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                ),
+                backgroundColor: const Color(0xFFF0F3FA),
+                selectedColor: AppColors.primaryBlue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: isSelected ? Colors.transparent : const Color(0xFFE2E7F2)),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              );
+
+              if (fixedWidth == null) return chip;
+              return SizedBox(width: fixedWidth, child: Center(child: chip));
+            }
+
+            if (widget.columns <= 0) {
+              return Wrap(
+                spacing: spacing,
+                runSpacing: runSpacing,
+                children: widget.options.map((o) => chipFor(o, null)).toList(),
+              );
+            }
+
+            final w = (c.maxWidth - spacing * (widget.columns - 1)) / widget.columns;
+
+            return Wrap(
+              spacing: spacing,
+              runSpacing: runSpacing,
+              children: widget.options.map((o) => chipFor(o, w)).toList(),
             );
-          }).toList(),
+          },
         ),
       ],
     );
