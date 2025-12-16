@@ -42,7 +42,9 @@ class _FilterSliderState extends State<FilterSlider> {
 
   @override
   Widget build(BuildContext context) {
-    final divisions = ((widget.max - widget.min) / widget.step).round();
+    final divisions = widget.step > 0
+        ? ((widget.max - widget.min) / widget.step).round().clamp(1, 1000)
+        : 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
