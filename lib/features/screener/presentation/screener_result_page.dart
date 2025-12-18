@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
-import 'package:ssogssog_flutter/core/widget/common_app_bar.dart';
-import 'package:ssogssog_flutter/features/screener/presentation/widget/applied_filter_bottom_sheet.dart'; // [추가]
+import 'package:ssogssog_flutter/features/screener/presentation/widget/applied_filter_bottom_sheet.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/screener_result_card.dart';
 
 class ScreenerResultPage extends StatelessWidget {
@@ -12,11 +12,17 @@ class ScreenerResultPage extends StatelessWidget {
     const int resultCount = 1731;
 
     return Scaffold(
-      appBar: const CommonAppBar(title: '검색 결과'),
+      appBar: AppBar(
+        title: const Text('검색 결과'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          // go('/screener') 대신 pop()을 사용하여 자연스러운 뒤로가기 구현
+          onPressed: () => context.pop(), 
+        ),
+      ),
       backgroundColor: const Color(0xFFF6F7FB),
       body: Column(
         children: [
-          // [핵심 수정] buildContext를 전달하기 위해 메서드 호출 부분 변경
           _buildCurrentFilterHeader(context, resultCount),
           Expanded(
             child: ListView.separated(
@@ -43,10 +49,9 @@ class ScreenerResultPage extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                // [핵심 수정] 바텀 시트를 띄우는 코드 추가
                 showModalBottomSheet(
                   context: context,
-                  isScrollControlled: true, // true로 설정해야 키보드 등에 의해 가려지지 않음
+                  isScrollControlled: true,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   ),
