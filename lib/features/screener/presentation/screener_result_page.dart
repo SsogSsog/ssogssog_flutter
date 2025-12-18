@@ -16,8 +16,7 @@ class ScreenerResultPage extends StatelessWidget {
         title: const Text('검색 결과'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          // go('/screener') 대신 pop()을 사용하여 자연스러운 뒤로가기 구현
-          onPressed: () => context.pop(), 
+          onPressed: () => context.pop(),
         ),
       ),
       backgroundColor: const Color(0xFFF6F7FB),
@@ -29,7 +28,14 @@ class ScreenerResultPage extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               itemCount: 10,
               separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, __) => ScreenerResultCard(),
+              // [핵심 수정] ScreenerResultCard에 임시 데이터를 전달하여 오류 해결
+              itemBuilder: (_, __) => const ScreenerResultCard(
+                name: '큐로홀딩스',
+                code: '051780',
+                price: 1236,
+                changeRate: -29.97,
+                volume: 2517785,
+              ),
             ),
           ),
         ],

@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 
 class ScreenerResultCard extends StatelessWidget {
-  ScreenerResultCard({super.key});
+  final String name;
+  final String code;
+  final int price;
+  final double changeRate;
+  final int volume;
 
-  // 임시 데이터 (나중에 모델로 주입)
-  final String name = '큐로홀딩스';
-  final String code = '051780';
-  final int price = 1236;
-  final double changeRate = 29.97; // +면 상승, -면 하락
-  final int volume = 2517785;
+  const ScreenerResultCard({
+    super.key,
+    required this.name,
+    required this.code,
+    required this.price,
+    required this.changeRate,
+    required this.volume,
+  });
 
+  // 숫자를 포맷하는 private 헬퍼 함수
   String _fmtInt(int n) {
     final s = n.toString();
     final buf = StringBuffer();
@@ -53,7 +60,7 @@ class ScreenerResultCard extends StatelessWidget {
                       name,
                       style: const TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w800, // w900 -> w800
+                        fontWeight: FontWeight.w800,
                         color: Color(0xFF111318),
                       ),
                     ),
@@ -63,7 +70,7 @@ class ScreenerResultCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12.5,
                         color: Color(0xFF8B93A1),
-                        fontWeight: FontWeight.w600, // w700 -> w600 (살짝 부드럽게)
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -78,22 +85,20 @@ class ScreenerResultCard extends StatelessWidget {
                     '${_fmtInt(price)}원',
                     style: const TextStyle(
                       fontSize: 17,
-                      fontWeight: FontWeight.w800, // w900 -> w800
+                      fontWeight: FontWeight.w800,
                       color: Color(0xFF111318),
                     ),
                   ),
                   const SizedBox(height: 6),
-
                   Text(
                     rateText,
                     style: TextStyle(
                       fontSize: 13.5,
                       color: rateColor,
-                      fontWeight: FontWeight.w800, // w900 -> w800
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 6),
-
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -104,7 +109,7 @@ class ScreenerResultCard extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF8B93A1),
-                          fontWeight: FontWeight.w600, // w700 -> w600
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
