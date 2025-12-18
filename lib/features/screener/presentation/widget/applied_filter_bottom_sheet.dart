@@ -57,7 +57,8 @@ class AppliedFilterBottomSheet extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     side: BorderSide(color: Colors.grey[300]!),
                   ),
-                  child: const Text('필터 수정'),
+                  // 텍스트에 bold 스타일 추가
+                  child: const Text('필터 수정', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -71,7 +72,7 @@ class AppliedFilterBottomSheet extends StatelessWidget {
                     backgroundColor: AppColors.primaryBlue,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('이 조건 저장'),
+                  child: const Text('이 조건 저장', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
