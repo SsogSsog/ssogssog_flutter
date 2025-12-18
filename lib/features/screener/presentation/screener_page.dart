@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 import 'package:ssogssog_flutter/core/widget/common_app_bar.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_chip_group.dart';
@@ -19,7 +20,6 @@ class ScreenerPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(_pageH, 16, _pageH, 120),
         children: [
-          // ✅ [추가] 상단 안내 멘트(배너)
           const _InfoBanner(
             text: '아래의 필터로 주식을 검색할 수 있습니다. 기준 값은 전일종가 기준으로 계산됩니다.',
           ),
@@ -27,7 +27,6 @@ class ScreenerPage extends StatelessWidget {
 
           _SectionCard(
             title: '기본 정보',
-            // ✅ [추가] 섹션별 안내 멘트
             subtitle: '아무것도 선택하지 않으면 전체 종목을 대상으로 합니다.',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,7 +132,8 @@ class ScreenerPage extends StatelessWidget {
       ),
       bottomNavigationBar: _BottomApplyBar(
         label: '검색하기',
-        onPressed: () {},
+        //  context.go -> context.push
+        onPressed: () => context.push('/screener/result'), 
       ),
     );
   }
@@ -142,7 +142,7 @@ class ScreenerPage extends StatelessWidget {
 
 class _SectionCard extends StatelessWidget {
   final String title;
-  final String? subtitle; // ✅ 추가
+  final String? subtitle;
   final Widget child;
 
   const _SectionCard({
@@ -165,7 +165,6 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
 
-          // ✅ subtitle이 있을 때만 출력
           if (subtitle != null) ...[
             const SizedBox(height: 6),
             Text(
