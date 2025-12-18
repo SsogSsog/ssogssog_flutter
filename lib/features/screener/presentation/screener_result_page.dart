@@ -15,28 +15,14 @@ class ScreenerResultPage extends StatelessWidget {
       appBar: const CommonAppBar(title: '검색 결과'),
       backgroundColor: const Color(0xFFF6F7FB), // 배경색 추가
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. 현재 필터 보기 버튼
-          _buildCurrentFilterButton(),
-
-          // 2. 검색 결과 요약 텍스트
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Text(
-              '전일종가 기준으로 총 $resultCount건이 검색되었습니다.',
-              style: const TextStyle(color: AppColors.greyText, fontSize: 13),
-            ),
-          ),
-
-          // 3. 결과 리스트
+          _buildCurrentFilterHeader(resultCount),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 24), // 리스트 하단 여백
-              itemCount: 10, // 임시로 10개 항목 표시
-              itemBuilder: (context, index) {
-                return const ScreenerResultCard();
-              },
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              itemCount: 10,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (_, __) => ScreenerResultCard(),
             ),
           ),
         ],
@@ -45,25 +31,57 @@ class ScreenerResultPage extends StatelessWidget {
   }
 
   // '현재 필터 보기' 버튼 위젯
-  Widget _buildCurrentFilterButton() {
+  Widget _buildCurrentFilterHeader(int resultCount) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: OutlinedButton.icon(
-        onPressed: () {
-          // TODO: 현재 필터 상세 보기 기능
-        },
-        icon: const Icon(Icons.filter_list, size: 20),
-        label: const Text('현재 필터 보기'),
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 50), // 버튼의 최소 크기(너비, 높이)
-          foregroundColor: Colors.black87,
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                // TODO: 현재 필터 bottom sheet
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFEDEFF5)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.tune_rounded, size: 18,
+                        color: AppColors.primaryBlue),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        '현재 필터 보기',
+                        style: TextStyle(
+                            fontSize: 14.5, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    const Icon(
+                        Icons.chevron_right_rounded, color: Color(0xFF8B93A1)),
+                  ],
+                ),
+              ),
+            ),
           ),
-          side: BorderSide(color: Colors.grey[300]!),
-        ),
+          const SizedBox(height: 10),
+          Text(
+            '전일종가 기준으로 총 $resultCount건이 검색되었습니다.',
+            style: const TextStyle(color: Color(0xFF8B93A1),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
 }
+
+
