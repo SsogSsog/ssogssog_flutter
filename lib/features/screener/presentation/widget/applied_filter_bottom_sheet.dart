@@ -50,14 +50,13 @@ class AppliedFilterBottomSheet extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pop(context); // 바텀 시트 닫고
-                    context.go('/screener'); // 필터 설정 페이지로 이동
+                    context.pop(); // 1. 바텀 시트를 닫음
+                    context.pop(); // 2. 검색 결과 페이지를 닫아 필터 설정 페이지로 돌아감
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     side: BorderSide(color: Colors.grey[300]!),
                   ),
-                  // 텍스트에 bold 스타일 추가
                   child: const Text('필터 수정', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
