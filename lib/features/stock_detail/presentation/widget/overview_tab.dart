@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_basic_info_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_chart_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_header.dart';
 
@@ -23,7 +24,6 @@ class OverviewTab extends StatelessWidget {
 
     final rnd = Random();
 
-    // 예시: 6개월(약 60영업일) 데이터
     final chartData = List.generate(60, (i) {
       final base = 900 + i * 6;
       return ChartDataPoint(
@@ -32,8 +32,18 @@ class OverviewTab extends StatelessWidget {
       );
     });
 
-    // 예시 X축 라벨(원하면 실제 날짜로 바꿔서 넣으면 됨)
     const xTicks = ['12.24', '1.22', '2.20', '3.20', '4.19'];
+
+    // [핵심 추가] 기본 정보 카드용 임시 데이터
+    const basicInfoData = StockBasicInfoData(
+      marketCap: '1,234억',
+      per: '15.8배',
+      roe: '9.7%',
+      dividendYield: '-',
+      week52High: 1874,
+      week52Low: 1060,
+      currentPrice: 1275, 
+    );
 
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -46,11 +56,11 @@ class OverviewTab extends StatelessWidget {
           periodLabel: '지난 6개월 기준',
         ),
         const SizedBox(height: 24),
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Center(child: Text('#3 기본 정보 카드 영역')),
-        ),
+
+        // [핵심 수정] #3 기본 정보 카드 위젯 추가
+        StockBasicInfoCard(data: basicInfoData),
         const SizedBox(height: 16),
+        
         const Padding(
           padding: EdgeInsets.all(8.0),
           child: Center(child: Text('#4 기업 정보 카드 영역')),
