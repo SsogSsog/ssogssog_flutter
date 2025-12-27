@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_chart_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_header.dart';
 
 /// 종목 상세 페이지의 '개요' 탭 UI 전체를 담고 있는 위젯
@@ -22,16 +23,13 @@ class OverviewTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       children: const [
-        // [핵심 수정] #1 주가 헤더 위젯 추가
         StockHeader(data: headerData),
         SizedBox(height: 24),
 
-        // 2. 차트 (만들 예정)
-        Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Center(child: Text('#2 차트 영역')),
-        ),
-        SizedBox(height: 16),
+        // [핵심 수정] #2 차트 위젯 추가
+        StockChartCard(),
+        SizedBox(height: 24),
+        
         // 3. 기본 정보 카드 (만들 예정)
         Padding(
           padding: EdgeInsets.all(8.0),
