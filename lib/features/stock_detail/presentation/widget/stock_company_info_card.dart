@@ -31,7 +31,6 @@ class StockCompanyInfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        // [핵심 수정] 테두리 색상을 더 진하게 변경
         border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Column(
@@ -39,7 +38,6 @@ class StockCompanyInfoCard extends StatelessWidget {
         children: [
           const Text('기업 정보', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          // 2x2 그리드
           Table(
             children: [
               TableRow(
@@ -66,7 +64,12 @@ class StockCompanyInfoCard extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Divider(),
           ),
-          // 기업 소개
+          // [핵심 추가] '기업 소개' 소제목 추가
+          Text(
+            '기업 소개',
+            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 8),
           Text(
             data.description,
             style: TextStyle(fontSize: 14, color: Colors.grey[800], height: 1.5),
@@ -76,7 +79,6 @@ class StockCompanyInfoCard extends StatelessWidget {
     );
   }
 
-  // 그리드 아이템 위젯
   Widget _buildInfoItem(String title, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
