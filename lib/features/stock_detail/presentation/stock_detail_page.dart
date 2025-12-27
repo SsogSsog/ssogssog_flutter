@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/overview_tab.dart'; // [추가]
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/overview_tab.dart';
 
 class StockDetailPage extends StatefulWidget {
-  final String stockCode; // 라우터로부터 전달받을 종목 코드
+  final String stockCode;
 
   const StockDetailPage({super.key, required this.stockCode});
 
@@ -11,18 +11,26 @@ class StockDetailPage extends StatefulWidget {
 }
 
 class _StockDetailPageState extends State<StockDetailPage> {
-  int _selectedTabIndex = 0; // 현재 선택된 하단 탭 인덱스 (0: 개요)
+  int _selectedTabIndex = 0;
+  final List<String> tabNames = ['개요', '일별시세', '재무', '뉴스/공시'];
 
   @override
   Widget build(BuildContext context) {
+    // TODO: 실제 종목 데이터를 stockCode를 이용해 가져와야 함
+    const String stockName = "큐로홀딩스";
+
     return Scaffold(
       appBar: AppBar(
-        // 페이지 제목 없이 뒤로가기 버튼만 있는 깔끔한 AppBar
+        // [핵심 수정] AppBar에 종목명만 표시하도록 변경
+        title: Text(
+          '$stockName (${widget.stockCode})',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        titleSpacing: 0, // 타이틀의 왼쪽 기본 여백 제거
       ),
       body: IndexedStack(
         index: _selectedTabIndex,
         children: const [
-          // [핵심 수정] '개요' 탭의 내용을 OverviewTab 위젯으로 교체
           OverviewTab(),
           Center(child: Text('일별시세 탭 콘텐츠')),
           Center(child: Text('재무 탭 콘텐츠')),
@@ -33,7 +41,6 @@ class _StockDetailPageState extends State<StockDetailPage> {
     );
   }
 
-  // 하단 탭 네비게이션 바 위젯
   Widget _buildBottomNavigationBar() {
     return BottomNavigationBar(
       currentIndex: _selectedTabIndex,
