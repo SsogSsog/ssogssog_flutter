@@ -35,7 +35,6 @@ class StockBasicInfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        // [핵심 수정] 테두리 색상을 더 진하게 변경
         border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Column(
@@ -88,7 +87,11 @@ class StockBasicInfoCard extends StatelessWidget {
 
   // 52주 최저/최고 바 위젯
   Widget _build52WeekRange() {
-    final double currentPosition = ((data.currentPrice - data.week52Low) / (data.week52High - data.week52Low)).clamp(0.0, 1.0);
+    // 0으로 나누기 오류 방지
+    final range = data.week52High - data.week52Low;
+    final double currentPosition = range == 0
+        ? 0.5
+        : ((data.currentPrice - data.week52Low) / range).clamp(0.0, 1.0);
 
     return Column(
       children: [
