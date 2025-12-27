@@ -29,6 +29,15 @@ class StockHeader extends StatelessWidget {
 
   const StockHeader({super.key, required this.data});
 
+  // [핵심 추가] 거래량을 M(백만) 단위로 포맷하는 함수
+  String _formatVolume(int volume) {
+    if (volume < 1000000) {
+      return volume.toString();
+    }
+    double newVolume = volume / 1000000.0;
+    return '${newVolume.toStringAsFixed(1)}M';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isUp = data.changeRate >= 0;
@@ -51,13 +60,12 @@ class StockHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          // 2. 현재가, 등락 정보
+          // 2. 현재가, KOSDAQ 배지
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('${data.currentPrice}', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
-              // KOSDAQ/KOSPI 정보
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -69,23 +77,24 @@ class StockHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          // 3. 등락률, 전일가, 거래량
+          // 3. 등락률
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(rateIcon, color: rateColor, size: 24),
-                  Text('${data.change}', style: TextStyle(color: rateColor, fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(width: 4),
-                  Text('(${data.changeRate.toStringAsFixed(2)}%)', style: TextStyle(color: rateColor, fontSize: 16)),
-                ],
-              ),
-              Text('거래량 ${data.volume}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Icon(rateIcon, color: rateColor, size: 24),
+              Text('${data.change}', style: TextStyle(color: rateColor, fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(width: 4),
+              Text('(${data.changeRate.toStringAsFixed(2)}%)', style: TextStyle(color: rateColor, fontSize: 16)),
             ],
           ),
-          const SizedBox(height: 4),
-          Text('전일가 ${data.prevClose}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          const SizedBox(height: 8),
+          // [핵심 수정] 4. 전일가와 거래량을 한 줄에 표시
+          Row(
+            children: [
+              Text('전일 ${data.prevClose}', style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600)),
+              const Text('  ·  ', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              Text('거래량 ${_formatVolume(data.volume)}', style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w600)),
+            ],
+          )
         ],
       ),
     );
