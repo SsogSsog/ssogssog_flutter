@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 
 class ScreenerResultCard extends StatelessWidget {
@@ -17,7 +18,6 @@ class ScreenerResultCard extends StatelessWidget {
     required this.volume,
   });
 
-  // 숫자를 포맷하는 private 헬퍼 함수
   String _fmtInt(int n) {
     final s = n.toString();
     final buf = StringBuffer();
@@ -41,7 +41,8 @@ class ScreenerResultCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
-          // TODO: 종목 상세
+          // [핵심 수정] 탭하면 종목 코드를 가지고 상세 페이지로 이동
+          context.push('/stock/$code');
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
