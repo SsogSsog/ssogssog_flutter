@@ -10,16 +10,10 @@ class ChartDataPoint {
 
 class StockChartCard extends StatelessWidget {
   final List<ChartDataPoint> chartData;
-  final List<String>? xTicks; // optional: 하단 날짜 라벨
+  final List<String>? xTicks;
   final String periodLabel;
-
-  ///오른쪽 축 레이블(1292/877/5.9M) 표시 여부
   final bool showRightAxisLabels;
-
-  ///하단 요약 (최고/최저/최대거래량) 표시 여부
   final bool showSummaryLegend;
-
-
 
   const StockChartCard({
     super.key,
@@ -34,14 +28,13 @@ class StockChartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // 요약값 계산 (데이터 없으면 스킵)
     final summary = chartData.isEmpty
         ? null
         : _ChartSummary(
-      maxPrice: chartData.map((e) => e.price).reduce(max),
-      minPrice: chartData.map((e) => e.price).reduce(min),
-      maxVolume: chartData.map((e) => e.volume).reduce(max),
-    );
+            maxPrice: chartData.map((e) => e.price).reduce(max),
+            minPrice: chartData.map((e) => e.price).reduce(min),
+            maxVolume: chartData.map((e) => e.volume).reduce(max),
+          );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -49,12 +42,12 @@ class StockChartCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor.withOpacity(0.15)),
+          border: Border.all(color: theme.dividerColor.withAlpha((0.15 * 255).round())),
           boxShadow: [
             BoxShadow(
               blurRadius: 18,
               offset: const Offset(0, 8),
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withAlpha((0.06 * 255).round()),
             ),
           ],
         ),
@@ -79,20 +72,17 @@ class StockChartCard extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // 하단 요약(칩)
               if (showSummaryLegend && summary != null) ...[
                 const SizedBox(height: 10),
                 _SummaryLegend(summary: summary),
               ],
-
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
                   periodLabel,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.hintColor.withOpacity(0.9),
+                    color: theme.hintColor.withAlpha((0.9 * 255).round()),
                   ),
                 ),
               ),
@@ -128,9 +118,9 @@ class _SummaryLegend extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface.withOpacity(0.6),
+          color: theme.colorScheme.surface.withAlpha((0.6 * 255).round()),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: theme.dividerColor.withOpacity(0.15)),
+          border: Border.all(color: theme.dividerColor.withAlpha((0.15 * 255).round())),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -138,7 +128,7 @@ class _SummaryLegend extends StatelessWidget {
             Text(
               label,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.hintColor.withOpacity(0.95),
+                color: theme.hintColor.withAlpha((0.95 * 255).round()),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -146,7 +136,7 @@ class _SummaryLegend extends StatelessWidget {
             Text(
               value,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.85),
+                color: theme.colorScheme.onSurface.withAlpha((0.85 * 255).round()),
               ),
             ),
           ],
@@ -192,8 +182,6 @@ class _StockChartPainter extends CustomPainter {
   final List<ChartDataPoint> data;
   final ThemeData theme;
   final List<String>? xTicks;
-
-  /// ✅ 추가
   final bool showRightAxisLabels;
 
   _StockChartPainter({
@@ -207,8 +195,6 @@ class _StockChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (data.length < 2) return;
 
-    // ===== 레이아웃(패딩/영역) =====
-    // 레퍼런스처럼 "오른쪽 레이블" 공간을 확보
     const padLeft = 10.0;
     const padTop = 12.0;
     const padBottom = 22.0;
@@ -222,7 +208,6 @@ class _StockChartPainter extends CustomPainter {
       size.height - padTop - padBottom,
     );
 
-    // 가격(상단) / 거래량(하단) 비율
     final priceRect = Rect.fromLTWH(
       plotRect.left,
       plotRect.top,
@@ -236,7 +221,6 @@ class _StockChartPainter extends CustomPainter {
       plotRect.height * 0.24,
     );
 
-    // ===== 데이터 스케일 =====
     final prices = data.map((e) => e.price).toList();
     final volumes = data.map((e) => e.volume).toList();
 
@@ -244,24 +228,21 @@ class _StockChartPainter extends CustomPainter {
     double minPrice = prices.reduce(min);
     final maxVolume = volumes.reduce(max);
 
-    // min==max 방어
     if ((maxPrice - minPrice).abs() < 1e-9) {
       maxPrice += 1;
       minPrice -= 1;
     }
 
-    // 약간의 여유(상하 마진) 추가
     final priceRange = maxPrice - minPrice;
     maxPrice += priceRange * 0.06;
     minPrice -= priceRange * 0.06;
 
-    // ===== 스타일 =====
     final gridPaint = Paint()
-      ..color = theme.dividerColor.withOpacity(0.10)
+      ..color = theme.dividerColor.withAlpha((0.10 * 255).round())
       ..strokeWidth = 1;
 
     final linePaint = Paint()
-      ..color = theme.colorScheme.onSurface.withOpacity(0.55) // 회색 라인 느낌
+      ..color = theme.colorScheme.onSurface.withAlpha((0.55 * 255).round())
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -269,29 +250,26 @@ class _StockChartPainter extends CustomPainter {
       ..isAntiAlias = true;
 
     final barPaint = Paint()
-      ..color = Colors.blueAccent.withOpacity(0.55)
+      ..color = Colors.blueAccent.withAlpha((0.55 * 255).round())
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
     final labelStyle = theme.textTheme.labelSmall?.copyWith(
-      color: theme.hintColor.withOpacity(0.9),
+      color: theme.hintColor.withAlpha((0.9 * 255).round()),
       fontSize: 11,
     );
 
-    // ===== 배경(살짝 밝게) =====
     canvas.drawRect(
       fullRect,
-      Paint()..color = theme.scaffoldBackgroundColor.withOpacity(0.02),
+      Paint()..color = theme.scaffoldBackgroundColor.withAlpha((0.02 * 255).round()),
     );
 
-    // ===== 그리드(가격 영역 가로선) =====
     const gridLines = 4;
     for (int i = 0; i <= gridLines; i++) {
       final y = priceRect.top + (priceRect.height / gridLines) * i;
       canvas.drawLine(Offset(priceRect.left, y), Offset(priceRect.right, y), gridPaint);
     }
 
-    // ===== 포인트 -> 좌표 변환 =====
     final stepX = priceRect.width / (data.length - 1);
 
     double priceToY(double p) {
@@ -312,7 +290,6 @@ class _StockChartPainter extends CustomPainter {
       points.add(Offset(x, y));
     }
 
-    // ===== 거래량 막대 =====
     final barW = (stepX * 0.55).clamp(2.5, 7.0);
     for (int i = 0; i < data.length; i++) {
       final x = volumeRect.left + stepX * i;
@@ -323,23 +300,18 @@ class _StockChartPainter extends CustomPainter {
         barW,
         h,
       );
-
-      // 라운드 처리(레퍼런스처럼 부드럽게)
       final rr = RRect.fromRectAndRadius(r, const Radius.circular(2.5));
       canvas.drawRRect(rr, barPaint);
     }
 
-    // 거래량 바닥선
     canvas.drawLine(
       Offset(volumeRect.left, volumeRect.bottom),
       Offset(volumeRect.right, volumeRect.bottom),
       gridPaint,
     );
 
-    // ===== 가격 라인: 부드럽게(스무딩 path) =====
     final smoothPath = _catmullRomToBezier(points);
 
-    // ===== 라인 아래 그라데이션 채움(레퍼런스 핵심 포인트) =====
     final fillPath = Path.from(smoothPath)
       ..lineTo(points.last.dx, priceRect.bottom)
       ..lineTo(points.first.dx, priceRect.bottom)
@@ -350,17 +322,15 @@ class _StockChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          theme.colorScheme.onSurface.withOpacity(0.10),
-          theme.colorScheme.onSurface.withOpacity(0.00),
+          theme.colorScheme.onSurface.withAlpha((0.10 * 255).round()),
+          theme.colorScheme.onSurface.withAlpha(0),
         ],
       ).createShader(priceRect);
 
     canvas.drawPath(fillPath, fillPaint);
 
-    // 가격 라인 그리기
     canvas.drawPath(smoothPath, linePaint);
 
-    // ===== 오른쪽 레이블(최대/최소, 거래량 Max) =====
     if (showRightAxisLabels) {
       _drawRightLabel(
         canvas,
@@ -369,7 +339,6 @@ class _StockChartPainter extends CustomPainter {
         y: priceRect.top - 2,
         style: labelStyle,
       );
-
       _drawRightLabel(
         canvas,
         text: _formatNumber(minPrice),
@@ -377,7 +346,6 @@ class _StockChartPainter extends CustomPainter {
         y: priceRect.bottom - 12,
         style: labelStyle,
       );
-
       _drawRightLabel(
         canvas,
         text: _formatVolume(maxVolume),
@@ -387,13 +355,11 @@ class _StockChartPainter extends CustomPainter {
       );
     }
 
-    // ===== 하단 X 라벨(옵션) =====
     if (xTicks != null && xTicks!.isNotEmpty) {
       _drawXTicks(canvas, plotRect, xTicks!, labelStyle);
     }
   }
 
-  // Catmull-Rom spline -> cubic Bezier path
   Path _catmullRomToBezier(List<Offset> pts, {double tension = 0.2}) {
     final p = pts;
     final path = Path()..moveTo(p[0].dx, p[0].dy);
@@ -434,15 +400,14 @@ class _StockChartPainter extends CustomPainter {
   }
 
   void _drawXTicks(Canvas canvas, Rect plotRect, List<String> ticks, TextStyle? style) {
-    // ticks를 균등하게 배치
     final count = ticks.length;
     if (count < 2) return;
 
     final tpList = ticks
         .map((t) => TextPainter(
-      text: TextSpan(text: t, style: style),
-      textDirection: TextDirection.ltr,
-    )..layout())
+              text: TextSpan(text: t, style: style),
+              textDirection: TextDirection.ltr,
+            )..layout())
         .toList();
 
     for (int i = 0; i < count; i++) {
@@ -450,7 +415,6 @@ class _StockChartPainter extends CustomPainter {
       final x = plotRect.left + plotRect.width * t;
       final tp = tpList[i];
 
-      // 좌/우 끝은 살짝 안으로
       double dx = x - tp.width / 2;
       dx = dx.clamp(plotRect.left, plotRect.right - tp.width);
 
@@ -459,13 +423,11 @@ class _StockChartPainter extends CustomPainter {
   }
 
   String _formatNumber(double v) {
-    // 레퍼런스처럼 정수에 가깝게
     final n = v.round();
     return n.toString();
   }
 
   String _formatVolume(double v) {
-    // 6.0M 형태
     if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
     if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
     return v.toStringAsFixed(0);
@@ -473,6 +435,8 @@ class _StockChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _StockChartPainter oldDelegate) {
-    return oldDelegate.data != data || oldDelegate.theme != theme || oldDelegate.xTicks != xTicks;
+    return oldDelegate.data != data ||
+        oldDelegate.theme != theme ||
+        oldDelegate.xTicks != xTicks;
   }
 }
