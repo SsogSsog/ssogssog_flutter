@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/daily_price_tab.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/overview_tab.dart';
 
 class StockDetailPage extends StatefulWidget {
@@ -21,7 +22,6 @@ class _StockDetailPageState extends State<StockDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        // [핵심 수정] AppBar에 종목명만 표시하도록 변경
         title: Text(
           '$stockName (${widget.stockCode})',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -32,7 +32,8 @@ class _StockDetailPageState extends State<StockDetailPage> {
         index: _selectedTabIndex,
         children: const [
           OverviewTab(),
-          Center(child: Text('일별시세 탭 콘텐츠')),
+          // '일별시세' 탭의 내용을 DailyPriceTab 위젯으로 교체
+          DailyPriceTab(),
           Center(child: Text('재무 탭 콘텐츠')),
           Center(child: Text('뉴스/공시 탭 콘텐츠')),
         ],
