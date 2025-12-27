@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/overview_tab.dart'; // [추가]
 
 class StockDetailPage extends StatefulWidget {
   final String stockCode; // 라우터로부터 전달받을 종목 코드
@@ -21,13 +22,10 @@ class _StockDetailPageState extends State<StockDetailPage> {
       body: IndexedStack(
         index: _selectedTabIndex,
         children: const [
-          // 0: 개요 탭 (우리가 구현할 내용)
-          Center(child: Text('개요 탭 콘텐츠')),
-          // 1: 일별시세 탭
+          // [핵심 수정] '개요' 탭의 내용을 OverviewTab 위젯으로 교체
+          OverviewTab(),
           Center(child: Text('일별시세 탭 콘텐츠')),
-          // 2: 재무 탭
           Center(child: Text('재무 탭 콘텐츠')),
-          // 3: 뉴스/공시 탭
           Center(child: Text('뉴스/공시 탭 콘텐츠')),
         ],
       ),
@@ -44,15 +42,10 @@ class _StockDetailPageState extends State<StockDetailPage> {
           _selectedTabIndex = index;
         });
       },
-      // 선택 시 라벨과 아이콘 색상
       selectedItemColor: Colors.black,
-      // 선택 안된 라벨과 아이콘 색상
       unselectedItemColor: Colors.grey[600],
-      // 선택 시 글자 크기
       selectedFontSize: 12,
-      // 선택 안된 글자 크기
       unselectedFontSize: 12,
-      // 아래 탭 아이템들의 타입 설정 (버튼이 4개 이상일 때 필요)
       type: BottomNavigationBarType.fixed,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: '개요'),
