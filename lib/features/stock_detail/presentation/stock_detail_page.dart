@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/daily_price_tab.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/financials_tab.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/overview_tab.dart';
 
 class StockDetailPage extends StatefulWidget {
@@ -32,9 +33,9 @@ class _StockDetailPageState extends State<StockDetailPage> {
         index: _selectedTabIndex,
         children: const [
           OverviewTab(),
-          // '일별시세' 탭의 내용을 DailyPriceTab 위젯으로 교체
           DailyPriceTab(),
-          Center(child: Text('재무 탭 콘텐츠')),
+          // '재무' 탭의 내용을 FinancialsTab 위젯으로 교체
+          FinancialsTab(),
           Center(child: Text('뉴스/공시 탭 콘텐츠')),
         ],
       ),
