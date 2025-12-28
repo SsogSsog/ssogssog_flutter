@@ -20,9 +20,9 @@ class FinancialStabilityData {
 
   // 부채비율 계산 (부채 / 자본 * 100)
   double get debtRatio {
-    if (totalEquityVal <= 0) return 0.0;  // 또는 적절한 기본값
-      return (totalLiabilitiesVal / totalEquityVal) * 100;
-    }
+    if (totalEquityVal <= 0) return 0.0;  // 자본잠식 또는 0일때 0.0 반환
+    return (totalLiabilitiesVal / totalEquityVal) * 100;
+  }
 }
 
 class FinancialStabilityCard extends StatelessWidget {
@@ -32,22 +32,27 @@ class FinancialStabilityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 테마 컬러 설정 (앱의 브랜드 컬러에 맞게 조정하세요)
-    // 부채는 약간 경고 느낌(주황/빨강) 혹은 중립(회색), 자본은 긍정(파랑/초록) 추천
     final liabilityColor = Colors.orange.shade300;
     final equityColor = Colors.blue.shade300;
 
-    // 전체 자산 대비 비율 계산 (Flex에 넣기 위함)
+    // [핵심 수정] 0으로 나누기 오류 방지
     final total = data.totalLiabilitiesVal + data.totalEquityVal;
-    // 소수점 문제 방지를 위해 정수 Flex 값으로 변환
-    final int liabilityFlex = ((data.totalLiabilitiesVal / total) * 100).round();
-    final int equityFlex = 100 - liabilityFlex;
+    int liabilityFlex;
+    int equityFlex;
+
+    if (total == 0) {
+      liabilityFlex = 50;
+      equityFlex = 50;
+    } else {
+      liabilityFlex = ((data.totalLiabilitiesVal / total) * 100).round();
+      equityFlex = 100 - liabilityFlex;
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white, // 카드 배경
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -60,7 +65,6 @@ class FinancialStabilityCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. 헤더 (제목 + 부채비율 뱃지)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -72,53 +76,34 @@ class FinancialStabilityCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-
-          // 2. 핵심 시각화 (Stacked Bar Graph)
-          // "자산 = 부채 + 자본"을 하나의 막대로 표현
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: SizedBox(
-              height: 24, // 막대 두께
+              height: 24,
               child: Row(
                 children: [
-                  // 부채 영역
                   Expanded(
                     flex: liabilityFlex,
-                    child: Container(
-                      color: liabilityColor,
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.only(left: 8),
-                      // 공간이 좁으면 텍스트 숨김 처리 등을 해야 할 수도 있음
-                    ),
+                    child: Container(color: liabilityColor),
                   ),
-                  // 자본 영역
                   Expanded(
                     flex: equityFlex,
-                    child: Container(
-                      color: equityColor,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 8),
-                    ),
+                    child: Container(color: equityColor),
                   ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // 3. 하단 상세 정보 (범례 역할)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // 부채 정보
               _buildLegendItem(
                 title: "부채총계",
                 value: data.totalLiabilitiesStr,
                 color: liabilityColor,
                 align: CrossAxisAlignment.start,
               ),
-              // 자본 정보
               _buildLegendItem(
                 title: "자본총계",
                 value: data.totalEquityStr,
@@ -127,12 +112,9 @@ class FinancialStabilityCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 20),
           Divider(color: Colors.grey.withOpacity(0.2)),
           const SizedBox(height: 12),
-
-          // 4. 자산 총계 (결론)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -148,7 +130,6 @@ class FinancialStabilityCard extends StatelessWidget {
     );
   }
 
-  // 부채비율 상태 뱃지
   Widget _buildDebtRatioBadge(double ratio) {
     Color color;
     String text;
@@ -185,7 +166,6 @@ class FinancialStabilityCard extends StatelessWidget {
     );
   }
 
-  // 하단 범례 아이템
   Widget _buildLegendItem({
     required String title,
     required String value,
