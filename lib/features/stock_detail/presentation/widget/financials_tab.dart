@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/financial_stability_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/financial_summary_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/performance_chart_card.dart';
 
@@ -17,7 +18,6 @@ class FinancialsTab extends StatelessWidget {
       const FinancialMetric(name: '부채비율', value: '85%', evaluation: '안정적', badgeColor: Colors.green),
     ];
 
-    // [핵심 추가] 실적 분석 카드용 임시 데이터
     const annualData = [
       PerformanceDataPoint(period: '22년', revenue: 1792, operatingProfit: -92, netIncome: -110),
       PerformanceDataPoint(period: '23년', revenue: 1869, operatingProfit: 319, netIncome: 280),
@@ -31,22 +31,31 @@ class FinancialsTab extends StatelessWidget {
       PerformanceDataPoint(period: '23.4Q', revenue: 489, operatingProfit: 64, netIncome: 55),
     ];
 
+    // 재무 상태 카드용 임시 데이터
+    const stabilityData = FinancialStabilityData(
+      // 1. 화면에 글자로 보여줄 데이터 (단위 포함)
+      totalAssetsStr: '4,567억',
+      totalLiabilitiesStr: '2,989억',
+      totalEquityStr: '1,578억',
+
+      // 2. 그래프와 비율 계산에 쓸 실제 숫자 데이터 (단위, 콤마 제외)
+      // 나중에 DB에서 가져올 때는 Long 타입을 double로 변환해서 넣으면 됨
+      totalLiabilitiesVal: 2989,
+      totalEquityVal: 1578,
+    );
+
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       children: [
         FinancialSummaryCard(metrics: summaryMetrics),
         const SizedBox(height: 16),
-        //  #2 실적 분석 카드 위젯 추가
         const PerformanceChartCard(
           annualData: annualData,
           quarterlyData: quarterlyData,
         ),
         const SizedBox(height: 16),
-        // 3. 재무 상태 카드 (만들 예정)
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Center(child: Text('#3 재무 상태 카드 영역')),
-        ),
+        // #3 재무 상태 카드 위젯 추가
+        const FinancialStabilityCard(data: stabilityData),
       ],
     );
   }
