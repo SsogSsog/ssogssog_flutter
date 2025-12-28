@@ -5,12 +5,20 @@ import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/perfo
 
 /// 종목 상세 페이지의 '재무' 탭 UI 전체를 담고 있는 위젯
 class FinancialsTab extends StatelessWidget {
-  const FinancialsTab({super.key});
+  final String stockName;
+  final String stockCode;
+
+  const FinancialsTab({
+    super.key,
+    required this.stockName,
+    required this.stockCode,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 실제 데이터 모델을 외부에서 전달받아야 합니다.
+    final theme = Theme.of(context);
 
+    // TODO: 실제 데이터 모델을 외부에서 전달받아야 합니다.
     final List<FinancialMetric> summaryMetrics = [
       const FinancialMetric(name: 'PER', value: '15.8배', evaluation: '보통', badgeColor: Colors.orange),
       const FinancialMetric(name: 'ROE', value: '9.7%', evaluation: '양호', badgeColor: Colors.green),
@@ -31,15 +39,10 @@ class FinancialsTab extends StatelessWidget {
       PerformanceDataPoint(period: '23.4Q', revenue: 489, operatingProfit: 64, netIncome: 55),
     ];
 
-    // 재무 상태 카드용 임시 데이터
     const stabilityData = FinancialStabilityData(
-      // 1. 화면에 글자로 보여줄 데이터 (단위 포함)
       totalAssetsStr: '4,567억',
       totalLiabilitiesStr: '2,989억',
       totalEquityStr: '1,578억',
-
-      // 2. 그래프와 비율 계산에 쓸 실제 숫자 데이터 (단위, 콤마 제외)
-      // 나중에 DB에서 가져올 때는 Long 타입을 double로 변환해서 넣으면 됨
       totalLiabilitiesVal: 2989,
       totalEquityVal: 1578,
     );
@@ -47,15 +50,47 @@ class FinancialsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                '재무',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.dividerColor.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '$stockName  $stockCode',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface.withOpacity(0.70),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
         FinancialSummaryCard(metrics: summaryMetrics),
         const SizedBox(height: 16),
-        const PerformanceChartCard(
+
+        PerformanceChartCard(
           annualData: annualData,
           quarterlyData: quarterlyData,
         ),
         const SizedBox(height: 16),
-        // #3 재무 상태 카드 위젯 추가
-        const FinancialStabilityCard(data: stabilityData),
+
+        FinancialStabilityCard(data: stabilityData),
       ],
     );
   }
