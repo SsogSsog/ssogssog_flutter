@@ -19,7 +19,10 @@ class FinancialStabilityData {
   });
 
   // 부채비율 계산 (부채 / 자본 * 100)
-  double get debtRatio => (totalLiabilitiesVal / totalEquityVal) * 100;
+  double get debtRatio {
+    if (totalEquityVal <= 0) return 0.0;  // 또는 적절한 기본값
+      return (totalLiabilitiesVal / totalEquityVal) * 100;
+    }
 }
 
 class FinancialStabilityCard extends StatelessWidget {
