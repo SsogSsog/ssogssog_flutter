@@ -43,12 +43,12 @@ class _PerformanceChartCardState extends State<PerformanceChartCard> {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.15)),
+        border: Border.all(color: theme.dividerColor.withAlpha((0.15 * 255).round())),
         boxShadow: [
           BoxShadow(
             blurRadius: 18,
             offset: const Offset(0, 8),
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withAlpha((0.06 * 255).round()),
           ),
         ],
       ),
@@ -59,9 +59,9 @@ class _PerformanceChartCardState extends State<PerformanceChartCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              const Text(
                 '실적 분석',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               _PillToggle(
                 left: '연간',
@@ -128,7 +128,7 @@ class _SoftDivider extends StatelessWidget {
       child: Divider(
         height: 1,
         thickness: 1,
-        color: theme.dividerColor.withOpacity(0.10),
+        color: theme.dividerColor.withAlpha((0.10 * 255).round()),
       ),
     );
   }
@@ -167,7 +167,7 @@ class _ChartSection extends StatelessWidget {
             Text(
               subtitle,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.hintColor.withOpacity(0.9),
+                color: theme.hintColor.withAlpha((0.9 * 255).round()),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -208,7 +208,7 @@ class _PillToggle extends StatelessWidget {
       height: 34,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: theme.dividerColor.withOpacity(0.12),
+        color: theme.dividerColor.withAlpha((0.12 * 255).round()),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -259,7 +259,7 @@ class _PillItem extends StatelessWidget {
           text,
           style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w800,
-            color: selected ? Colors.white : theme.colorScheme.onSurface.withOpacity(0.75),
+            color: selected ? Colors.white : theme.colorScheme.onSurface.withAlpha((0.75 * 255).round()),
           ),
         ),
       ),
@@ -286,9 +286,8 @@ class _PerformanceChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
 
-    // 차트 내부 패딩(라벨/축 때문에 필수)
-    const double topPad = 18;    // 값 라벨 공간
-    const double bottomPad = 22; // 기간 라벨 공간
+    const double topPad = 18;
+    const double bottomPad = 22;
     const double sidePad = 6;
 
     final chartRect = Rect.fromLTWH(
@@ -299,29 +298,22 @@ class _PerformanceChartPainter extends CustomPainter {
     );
 
     final rawValues = data.map(valueSelector).toList();
-
     final isBar = chartType == _ChartType.bar;
     final isLine = chartType == _ChartType.line;
 
-    // ============================================================
-    // 요구사항 반영 스케일/플로팅 값
-    // 1) Bar: 음수여도 위로만(절댓값으로 높이 계산), 색만 회색
-    // 2) Line(영업이익): 음수면 0으로 클램프해서 아래로 내려가지 않게
-    // ============================================================
     final plotValues = rawValues.map((v) {
-      if (isBar) return v.abs();         // bar는 절댓값으로 높이 계산
-      return max(0.0, v);               // line은 음수면 0으로 클램프
+      if (isBar) return v.abs();
+      return max(0.0, v);
     }).toList();
 
     double maxPlot = plotValues.isEmpty ? 1.0 : plotValues.reduce(max);
     if (maxPlot == 0) maxPlot = 1.0;
-    maxPlot *= 1.15; // 약간 여유
+    maxPlot *= 1.15;
 
-    final baselineY = chartRect.bottom; // 항상 아래가 기준선(위로만 그림)
+    final baselineY = chartRect.bottom;
 
-    // 은은한 보조 그리드(2줄)
     final gridPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.10)
+      ..color = Colors.grey.withAlpha((0.10 * 255).round())
       ..strokeWidth = 1;
 
     for (int i = 1; i <= 2; i++) {
@@ -333,9 +325,8 @@ class _PerformanceChartPainter extends CustomPainter {
       );
     }
 
-    // 기준선(하단)
     final basePaint = Paint()
-      ..color = Colors.grey.withOpacity(0.20)
+      ..color = Colors.grey.withAlpha((0.20 * 255).round())
       ..strokeWidth = 1;
 
     canvas.drawLine(
@@ -354,54 +345,44 @@ class _PerformanceChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final barPaint = Paint()..color = color;
-    final negBarPaint = Paint()..color = Colors.grey.withOpacity(0.35);
+    final negBarPaint = Paint()..color = Colors.grey.withAlpha((0.35 * 255).round());
 
     Path? linePath;
 
     for (int i = 0; i < data.length; i++) {
-      final rawV = rawValues[i];     // 라벨은 원래 값(음수면 - 표시)
-      final plotV = plotValues[i];   // 그릴 때만 변환(절댓값/클램프)
-
+      final rawV = rawValues[i];
+      final plotV = plotValues[i];
       final cx = chartRect.left + stepX * i + stepX / 2;
-
-      // plotV는 [0..maxPlot] 범위라고 가정
       final y = baselineY - (plotV / maxPlot) * chartRect.height;
 
-      // 기간 라벨
       _drawText(
         canvas,
         data[i].period,
-        Offset(cx, size.height - bottomPad + 4),
+        Offset(cx, baselineY + 10),
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        color: Colors.black.withOpacity(0.55),
+        color: Colors.black.withAlpha((0.55 * 255).round()),
       );
 
-      // 값 라벨
       final valueLabel = _formatEok(rawV);
-
       double rawLabelY;
-      Color labelColor = Colors.black.withOpacity(0.80);
+      Color labelColor = Colors.black.withAlpha((0.80 * 255).round());
 
+      // 라벨의 Y좌표를 조정하여 막대/선에 더 가깝게 만듭니다.
       if (isBar) {
-        // bar는 항상 막대 위쪽에 라벨
-        rawLabelY = y - 16;
+        rawLabelY = y - 10; // 기존 -16에서 변경
         if (rawV < 0) {
-          // 적자 표시(요구사항: 숫자에 - 붙여 표시) -> 이미 valueLabel이 - 포함
-          // 라벨 색은 그대로 두거나 약간 톤다운해도 됨(원하면 아래처럼)
-          labelColor = Colors.black.withOpacity(0.75);
+          labelColor = Colors.black.withAlpha((0.75 * 255).round());
         }
       } else {
-        // line: 음수면 선은 baseline에 붙지만 라벨은 아래로 살짝 내려서(적자 느낌)
         if (rawV >= 0) {
-          rawLabelY = y - 16;
+          rawLabelY = y - 10; // 기존 -16에서 변경
         } else {
           rawLabelY = baselineY + 6;
-          labelColor = Colors.black.withOpacity(0.70);
+          labelColor = Colors.black.withAlpha((0.70 * 255).round());
         }
       }
 
-      // 침범 방지 clamp (⚠️ clamp는 num 반환 -> toDouble 필수)
       final minLabelY = chartRect.top + 2.0;
       final maxLabelY = chartRect.bottom - 14.0;
       final safeLabelY = rawLabelY.clamp(minLabelY, maxLabelY).toDouble();
@@ -416,38 +397,32 @@ class _PerformanceChartPainter extends CustomPainter {
       );
 
       if (isBar) {
-        // bar: 음수도 위로만 그리기(절댓값 plotV로 y 계산했기 때문에 자연스럽게 위로)
         final rect = Rect.fromLTWH(
           cx - barWidth / 2,
           y,
           barWidth,
           (baselineY - y).clamp(0.0, chartRect.height),
         );
-
         canvas.drawRRect(
           RRect.fromRectAndRadius(rect, const Radius.circular(6)),
-          rawV >= 0 ? barPaint : negBarPaint, // ✅ 음수면 회색
+          rawV >= 0 ? barPaint : negBarPaint,
         );
       } else {
-        // line: 음수는 0으로 클램프되어 y가 baseline에 붙음
         if (i == 0) {
           linePath = Path()..moveTo(cx, y);
         } else {
           final prevPlotV = plotValues[i - 1];
           final prevCx = chartRect.left + stepX * (i - 1) + stepX / 2;
           final prevY = baselineY - (prevPlotV / maxPlot) * chartRect.height;
-
-          // 간단 스무딩
           final midX = (prevCx + cx) / 2;
           linePath!.quadraticBezierTo(prevCx, prevY, midX, (prevY + y) / 2);
-          linePath!.quadraticBezierTo(cx, y, cx, y);
+          linePath.quadraticBezierTo(cx, y, cx, y);
         }
       }
     }
 
-    // line fill (baseline까지)
     if (isLine && linePath != null) {
-      final fillPath = Path.from(linePath!);
+      final fillPath = Path.from(linePath);
       fillPath.lineTo(chartRect.right, baselineY);
       fillPath.lineTo(chartRect.left, baselineY);
       fillPath.close();
@@ -456,16 +431,16 @@ class _PerformanceChartPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [color.withOpacity(0.22), color.withOpacity(0.0)],
+          colors: [color.withAlpha((255 * 0.22).round()), color.withAlpha(0)],
         ).createShader(chartRect);
 
       canvas.drawPath(fillPath, fillPaint);
-      canvas.drawPath(linePath!, linePaint);
+      canvas.drawPath(linePath, linePaint);
     }
   }
 
   String _formatEok(double v) {
-    final n = v.round(); // 음수면 - 유지
+    final n = v.round();
     return '${_formatInt(n)}억';
   }
 
@@ -490,26 +465,17 @@ class _PerformanceChartPainter extends CustomPainter {
         required FontWeight fontWeight,
         required Color color,
       }) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: color,
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: TextStyle(fontSize: fontSize, fontWeight: fontWeight, color: color)),
       textAlign: TextAlign.center,
-    )..layout();
+      textDirection: TextDirection.ltr,
+    )..layout(minWidth: 0, maxWidth: 60);
 
-    tp.paint(canvas, Offset(center.dx - tp.width / 2, center.dy));
+    textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
   }
 
   @override
   bool shouldRepaint(covariant _PerformanceChartPainter oldDelegate) {
-    return oldDelegate.data != data ||
-        oldDelegate.chartType != chartType ||
-        oldDelegate.color != color;
+    return true;
   }
 }

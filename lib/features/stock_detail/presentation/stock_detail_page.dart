@@ -31,12 +31,14 @@ class _StockDetailPageState extends State<StockDetailPage> {
       ),
       body: IndexedStack(
         index: _selectedTabIndex,
-        children: const [
-          OverviewTab(),
-          DailyPriceTab(),
-          // '재무' 탭의 내용을 FinancialsTab 위젯으로 교체
-          FinancialsTab(),
-          Center(child: Text('뉴스/공시 탭 콘텐츠')),
+        children: [
+          const OverviewTab(),
+          const DailyPriceTab(),
+          FinancialsTab(
+            stockName: stockName,
+            stockCode: widget.stockCode,
+          ),
+          const Center(child: Text('뉴스/공시 탭 콘텐츠')),
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
