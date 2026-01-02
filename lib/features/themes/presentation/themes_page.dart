@@ -67,6 +67,7 @@ class ThemesPage extends StatelessWidget {
   }
 }
 
+// TODO: 검색 기능 구현 필요
 class _SearchBar extends StatelessWidget {
   final ThemeData theme;
   const _SearchBar({required this.theme});
