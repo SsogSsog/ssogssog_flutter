@@ -6,7 +6,8 @@ import 'package:ssogssog_flutter/features/screener/presentation/screener_page.da
 import 'package:ssogssog_flutter/features/screener/presentation/screener_result_page.dart';
 import 'package:ssogssog_flutter/features/settings/presentation/settings_page.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/stock_detail_page.dart';
-import 'package:ssogssog_flutter/features/themes/presentation/themes_page.dart'; // [추가]
+import 'package:ssogssog_flutter/features/themes/presentation/theme_detail_page.dart';
+import 'package:ssogssog_flutter/features/themes/presentation/themes_page.dart';
 import 'package:ssogssog_flutter/features/vault/presentation/vault_page.dart';
 
 final GoRouter router = GoRouter(
@@ -54,15 +55,23 @@ final GoRouter router = GoRouter(
         return StockDetailPage(stockCode: stockCode);
       },
     ),
-    // 테마 목록 페이지 라우트
     GoRoute(
       path: '/themes',
       builder: (context, state) => const ThemesPage(),
     ),
+    // 테마 상세 페이지를 위한 동적 라우트
+    GoRoute(
+      path: '/themes/:themeName',
+      builder: (context, state) {
+        final themeName = state.pathParameters['themeName']!;
+        // go_router는 파라미터를 자동으로 디코딩해주므로, 중복 디코딩을 제거합니다.
+        //return ThemeDetailPage(themeName: themeName);
+        return ThemeDetailPage.preview(themeName: themeName); // 임시 데이터 대입
+      },
+    ),
   ],
 );
 
-// 화면 전환 애니메이션을 없애기 위한 CustomTransitionPage
 class NoTransitionPage<T> extends CustomTransitionPage<T> {
   NoTransitionPage({
     required super.child,
