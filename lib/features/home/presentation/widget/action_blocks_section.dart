@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart'; // [핵심 추가]
 
 /// “필터 대시보드 + 스마트 필터 + 테마별 보기”가 들어가는 섹션을 담당
 class ActionBlocksSection extends StatelessWidget {
@@ -18,8 +19,8 @@ class ActionBlocksSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 왼쪽 큰 블록
-            Expanded( // 남은 공간
-              flex: 1, // 1/(1+1) 비율만큼 차지
+            Expanded(
+              flex: 1,
               child: _BigBlock(
                 color: const Color(0xFF6FABEB),
                 title: '필터 대시보드',
@@ -28,11 +29,11 @@ class ActionBlocksSection extends StatelessWidget {
                 imageSize: 72,
               ),
             ),
-            const SizedBox(width: 16), // 좌우 간격은 유지
+            const SizedBox(width: 16),
 
             // 오른쪽 작은 블록 2개
             Expanded(
-              flex: 1, // 1/(1+1) 비율만큼 차지
+              flex: 1,
               child: Column(
                 children: [
                   Expanded(
@@ -45,17 +46,20 @@ class ActionBlocksSection extends StatelessWidget {
                       imageSize: 40,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
+                  // InkWell로 감싸서 탭 기능 추가
                   Expanded(
-                    child: _SmallBlock(
-                      color: const Color(0xFFF1D2D2),
-                      title: '테마별 보기',
-                      subtitle: '요즘 뜨는 섹터',
-                      imagePath: 'assets/images/home/tag_rotate.png',
-                      textColor: Colors.black87,
-                      imageSize: 45,
+                    child: InkWell(
+                      onTap: () => context.push('/themes'),
+                      borderRadius: BorderRadius.circular(24),
+                      child: const _SmallBlock(
+                        color: Color(0xFFF1D2D2),
+                        title: '테마별 보기',
+                        subtitle: '요즘 뜨는 섹터',
+                        imagePath: 'assets/images/home/tag_rotate.png',
+                        textColor: Colors.black87,
+                        imageSize: 45,
+                      ),
                     ),
                   ),
                 ],
@@ -180,11 +184,11 @@ class _SmallBlock extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 2), // 텍스트 간격 줄임
+          const SizedBox(height: 2),
           Text(
             subtitle,
-            style: TextStyle(
-              color: const Color(0xFF4C4A4A),
+            style: const TextStyle(
+              color: Color(0xFF4C4A4A),
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
