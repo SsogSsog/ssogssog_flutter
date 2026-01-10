@@ -204,13 +204,12 @@ class _PillToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      height: 34,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: theme.dividerColor.withAlpha((0.12 * 255).round()),
-        borderRadius: BorderRadius.circular(10),
-      ),
+    return Material(
+      color: theme.dividerColor.withAlpha((0.12 * 255).round()),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+          height: 34,
+          padding: const EdgeInsets.all(3),
       child: Row(
         children: [
           _PillItem(
@@ -224,6 +223,7 @@ class _PillToggle extends StatelessWidget {
             onTap: () => onChanged(false),
           ),
         ],
+      ),
       ),
     );
   }
