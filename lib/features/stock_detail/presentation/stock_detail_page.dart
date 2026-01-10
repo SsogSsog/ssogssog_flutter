@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/daily_price_tab.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/financials_tab.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/overview_tab.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/news_announcements_tab.dart';
 
 class StockDetailPage extends StatefulWidget {
   final String stockCode;
@@ -38,7 +39,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
             stockName: stockName,
             stockCode: widget.stockCode,
           ),
-          const Center(child: Text('뉴스/공시 탭 콘텐츠')),
+          const NewsAnnouncementsTab(),
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
