@@ -27,7 +27,7 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 2. 섹션 제목 (점잖고 명확하게 변경)
+              // 2. 섹션 제목
               const Row(
                 children: [
                   Text(
@@ -109,14 +109,13 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
   // 랭킹 리스트 빌더
   Widget _buildRankingList() {
     return Column(
-      // ✨ 순위 5개까지
       children: List.generate(5, (index) {
         final rank = index + 1;
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0), // 아이템 간 간격
+          padding: const EdgeInsets.only(bottom: 16.0),
           child: Row(
             children: [
-              // 순위 (1~3위 파란색 강조, 4~5위 회색)
+              // 순위
               SizedBox(
                 width: 24,
                 child: Text(
@@ -124,7 +123,6 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
-                    // 1,2,3위만 파란색, 나머지는 회색
                     color: rank <= 3 ? const Color(0xFF6FABEB) : Colors.grey,
                   ),
                 ),
@@ -137,7 +135,7 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '삼성전자', // 나중에 실제 데이터로 교체
+                      '삼성전자',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -167,7 +165,8 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  // 상승/하락에 따라 색상 변경 (더미 로직)
+                  // TODO: [병합 시 주의] 현재 등락률 배지 색상과 값은 선택된 탭(_selectedIndex)에 의존하는 모킹 로직입니다.
+                  // 실제 데이터 통합 시에는 각 종목 객체의 실제 changeRate 값을 기반으로 색상과 텍스트를 결정하도록 수정해야 합니다. (By CodeRabbit)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(

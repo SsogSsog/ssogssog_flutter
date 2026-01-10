@@ -110,7 +110,7 @@ class _PerformanceChartCardState extends State<PerformanceChartCard> {
               data: data,
               valueSelector: (d) => d.netIncome,
               chartType: _ChartType.bar,
-              color: const Color(0xFF8098EA), // 톤다운 오렌지
+              color: const Color(0xFF8098EA), // 톤다운 퍼플/블루
             ),
           ),
         ],
