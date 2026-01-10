@@ -51,7 +51,14 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/stock/:stockCode',
       builder: (context, state) {
-        final String stockCode = state.pathParameters['stockCode']!;
+        // URL에서 stockCode 값을 추출
+        final String? stockCode = state.pathParameters['stockCode'];
+        if (stockCode == null || stockCode.isEmpty) {
+        // 에러 페이지로 리다이렉트하거나 홈으로 이동
+          return const Scaffold(
+            body: Center(child: Text('잘못된 종목 코드입니다')), // TODO 뒤로 가기 버튼도 만들면 좋음
+          );
+        }
         return StockDetailPage(stockCode: stockCode);
       },
     ),
@@ -63,10 +70,13 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/themes/:themeName',
       builder: (context, state) {
-        final themeName = state.pathParameters['themeName']!;
-        // go_router는 파라미터를 자동으로 디코딩해주므로, 중복 디코딩을 제거합니다.
-        //return ThemeDetailPage(themeName: themeName);
-        return ThemeDetailPage.preview(themeName: themeName); // 임시 데이터 대입
+        final themeName = state.pathParameters['themeName'];
+        if (themeName == null || themeName.isEmpty) {
+          return const Scaffold(
+            body: Center(child: Text('잘못된 테마입니다')),
+          );
+        }
+        return ThemeDetailPage.preview(themeName: themeName);
       },
     ),
   ],
