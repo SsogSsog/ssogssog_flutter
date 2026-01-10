@@ -83,6 +83,9 @@ class _PerformanceChartCardState extends State<PerformanceChartCard> {
               valueSelector: (d) => d.revenue,
               chartType: _ChartType.bar,
               color: const Color(0xFF58B9CC), // 톤다운 시안
+              gridColor: theme.dividerColor.withAlpha((0.10 * 255).round()),
+              baseLineColor: theme.dividerColor.withAlpha((0.20 * 255).round()),
+              labelColor: theme.textTheme.bodyMedium?.color ?? Colors.black,
             ),
           ),
           _SoftDivider(),
@@ -97,6 +100,9 @@ class _PerformanceChartCardState extends State<PerformanceChartCard> {
               valueSelector: (d) => d.operatingProfit,
               chartType: _ChartType.line,
               color: const Color(0xFF66B06A), // 톤다운 그린
+              gridColor: theme.dividerColor.withAlpha((0.10 * 255).round()),
+              baseLineColor: theme.dividerColor.withAlpha((0.20 * 255).round()),
+              labelColor: theme.textTheme.bodyMedium?.color ?? Colors.black,
             ),
           ),
           _SoftDivider(),
@@ -111,6 +117,9 @@ class _PerformanceChartCardState extends State<PerformanceChartCard> {
               valueSelector: (d) => d.netIncome,
               chartType: _ChartType.bar,
               color: const Color(0xFF8098EA), // 톤다운 퍼플/블루
+              gridColor: theme.dividerColor.withAlpha((0.10 * 255).round()),
+              baseLineColor: theme.dividerColor.withAlpha((0.20 * 255).round()),
+              labelColor: theme.textTheme.bodyMedium?.color ?? Colors.black,
             ),
           ),
         ],
@@ -274,12 +283,18 @@ class _PerformanceChartPainter extends CustomPainter {
   final double Function(PerformanceDataPoint) valueSelector;
   final _ChartType chartType;
   final Color color;
+  final Color gridColor;
+  final Color baseLineColor;
+  final Color labelColor;
 
   _PerformanceChartPainter({
     required this.data,
     required this.valueSelector,
     required this.chartType,
     required this.color,
+    required this.gridColor,
+    required this.baseLineColor,
+    required this.labelColor,
   });
 
   @override
@@ -313,7 +328,7 @@ class _PerformanceChartPainter extends CustomPainter {
     final baselineY = chartRect.bottom;
 
     final gridPaint = Paint()
-      ..color = Colors.grey.withAlpha((0.10 * 255).round())
+      ..color = gridColor
       ..strokeWidth = 1;
 
     for (int i = 1; i <= 2; i++) {
@@ -326,7 +341,7 @@ class _PerformanceChartPainter extends CustomPainter {
     }
 
     final basePaint = Paint()
-      ..color = Colors.grey.withAlpha((0.20 * 255).round())
+      ..color = baseLineColor
       ..strokeWidth = 1;
 
     canvas.drawLine(
@@ -345,7 +360,7 @@ class _PerformanceChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final barPaint = Paint()..color = color;
-    final negBarPaint = Paint()..color = Colors.grey.withAlpha((0.35 * 255).round());
+    final negBarPaint = Paint()..color = labelColor.withAlpha((0.35 * 255).round());
 
     Path? linePath;
 
@@ -361,25 +376,25 @@ class _PerformanceChartPainter extends CustomPainter {
         Offset(cx, baselineY + 10),
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        color: Colors.black.withAlpha((0.55 * 255).round()),
+        color: labelColor.withAlpha((0.55 * 255).round()),
       );
 
       final valueLabel = _formatEok(rawV);
       double rawLabelY;
-      Color labelColor = Colors.black.withAlpha((0.80 * 255).round());
+      Color curLabelColor = labelColor.withAlpha((0.80 * 255).round());
 
       // 라벨의 Y좌표를 조정하여 막대/선에 더 가깝게 만듭니다.
       if (isBar) {
         rawLabelY = y - 10; // 기존 -16에서 변경
         if (rawV < 0) {
-          labelColor = Colors.black.withAlpha((0.75 * 255).round());
+          curLabelColor = labelColor.withAlpha((0.75 * 255).round());
         }
       } else {
         if (rawV >= 0) {
           rawLabelY = y - 10; // 기존 -16에서 변경
         } else {
           rawLabelY = baselineY + 6;
-          labelColor = Colors.black.withAlpha((0.70 * 255).round());
+          curLabelColor = labelColor.withAlpha((0.70 * 255).round());
         }
       }
 
@@ -393,7 +408,7 @@ class _PerformanceChartPainter extends CustomPainter {
         Offset(cx, safeLabelY),
         fontSize: 12,
         fontWeight: FontWeight.w800,
-        color: labelColor,
+        color: curLabelColor,
       );
 
       if (isBar) {
