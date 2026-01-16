@@ -21,12 +21,16 @@ class ActionBlocksSection extends StatelessWidget {
             // 왼쪽 큰 블록
             Expanded(
               flex: 1,
-              child: _BigBlock(
-                color: const Color(0xFF6FABEB),
-                title: '필터 대시보드',
-                subtitle: '“내 조건으로 쏙쏙\n찾아보기”',
-                imagePath: 'assets/images/home/loupe.png',
-                imageSize: 72,
+              child: InkWell(
+                onTap: () => context.push('/screener/view'),
+                borderRadius: BorderRadius.circular(24),
+                child: const _BigBlock(
+                  color: Color(0xFF6FABEB),
+                  title: '필터 대시보드',
+                  subtitle: '“내 조건으로 쏙쏙\n찾아보기”',
+                  imagePath: 'assets/images/home/loupe.png',
+                  imageSize: 72,
+                ),
               ),
             ),
             const SizedBox(width: 16),

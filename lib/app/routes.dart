@@ -9,6 +9,7 @@ import 'package:ssogssog_flutter/features/stock_detail/presentation/stock_detail
 import 'package:ssogssog_flutter/features/themes/presentation/theme_detail_page.dart';
 import 'package:ssogssog_flutter/features/themes/presentation/themes_page.dart';
 import 'package:ssogssog_flutter/features/vault/presentation/vault_page.dart';
+import 'package:ssogssog_flutter/features/search/presentation/search_page.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -66,6 +67,12 @@ final GoRouter router = GoRouter(
       path: '/themes',
       builder: (context, state) => const ThemesPage(),
     ),
+    GoRoute(
+      path: '/search',
+      pageBuilder: (context, state) => NoTransitionPage(
+        child: const SearchPage(),
+      ),
+    ),
     // 테마 상세 페이지를 위한 동적 라우트
     GoRoute(
       path: '/themes/:themeName',
@@ -78,6 +85,15 @@ final GoRouter router = GoRouter(
         }
         return ThemeDetailPage.preview(themeName: themeName);
       },
+    ),
+    // Pushed Routes (Slide Transition)
+    GoRoute(
+      path: '/screener/view',
+      builder: (context, state) => const ScreenerPage(),
+    ),
+    GoRoute(
+      path: '/vault/view',
+      builder: (context, state) => const VaultPage(),
     ),
   ],
 );
