@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 /// (실제) 테마에 속한 종목 모델
 class ThemeStockItem {
@@ -15,17 +16,6 @@ class ThemeStockItem {
     required this.change,
     required this.changeRate,
   });
-
-// 나중에 서버 연동 시 여기만 추가하면 됨 (UI 영향 없음)
-// factory ThemeStockItem.fromJson(Map<String, dynamic> json) {
-//   return ThemeStockItem(
-//     name: json['name'] as String,
-//     code: json['code'] as String,
-//     price: json['price'] as int,
-//     change: json['change'] as int,
-//     changeRate: (json['changeRate'] as num).toDouble(),
-//   );
-// }
 }
 
 enum SortType { price, changeRate }
@@ -45,8 +35,6 @@ extension ThemeStockSorting on List<ThemeStockItem> {
 /// 특정 테마에 속한 종목 목록을 보여주는 페이지
 class ThemeDetailPage extends StatefulWidget {
   final String themeName;
-
-  /// 서버에서 받은 리스트를 그대로 주입
   final List<ThemeStockItem> items;
 
   const ThemeDetailPage({
@@ -57,6 +45,7 @@ class ThemeDetailPage extends StatefulWidget {
 
   /// 개발/미리보기용
   factory ThemeDetailPage.preview({Key? key, required String themeName}) {
+    // Mock Data
     const dummy = [
       ThemeStockItem(name: '삼성전자', code: '005930', price: 71000, change: 1200, changeRate: 1.72),
       ThemeStockItem(name: 'LG에너지솔루션', code: '373220', price: 392000, change: -4500, changeRate: -1.14),
@@ -64,6 +53,8 @@ class ThemeDetailPage extends StatefulWidget {
       ThemeStockItem(name: '에코프로비엠', code: '247540', price: 210000, change: -3200, changeRate: -1.50),
       ThemeStockItem(name: '삼성SDI', code: '006400', price: 373000, change: 2000, changeRate: 0.54),
       ThemeStockItem(name: '엘앤에프', code: '066970', price: 119000, change: -900, changeRate: -0.75),
+      ThemeStockItem(name: 'SK하이닉스', code: '000660', price: 132000, change: 3000, changeRate: 2.32),
+      ThemeStockItem(name: 'NAVER', code: '035420', price: 210500, change: -1500, changeRate: -0.71),
     ];
     return ThemeDetailPage(key: key, themeName: themeName, items: dummy);
   }
@@ -74,108 +65,258 @@ class ThemeDetailPage extends StatefulWidget {
 
 class _ThemeDetailPageState extends State<ThemeDetailPage> {
   SortType _sortType = SortType.price;
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final sortedItems = widget.items.sortedBy(_sortType);
 
+    // Mock Summary Data
+    final double avgChangeRate = 1.25;
+    final int upCount = widget.items.where((e) => e.changeRate > 0).length;
+    final int downCount = widget.items.where((e) => e.changeRate < 0).length;
+
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          widget.themeName,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
+        title: Text(widget.themeName),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, size: 28),
+            onPressed: () => context.push('/search'),
+          ),
+        ],
       ),
-      body: Column(
-        children: [
-          _buildSortToggle(theme),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              itemCount: sortedItems.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final item = sortedItems[index];
-                return _StockRowCard(
-                  item: item,
-                  onTap: () {
-                    // TODO: 종목 상세 페이지로 이동
-                  },
-                );
-              },
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          // 1. Theme Summary (Non-Sliver wrapper) or SliverToBoxAdapter
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _ThemeSummaryCard(
+                avgChangeRate: avgChangeRate,
+                upCount: upCount,
+                downCount: downCount,
+              ),
+            ),
+          ),
+
+          // 2. Sort Toggle & Total Count
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                   _SortSegmentControl(
+                    sortType: _sortType,
+                    onChanged: (val) => setState(() => _sortType = val),
+                  ),
+                  Text(
+                    '총 ${widget.items.length}개',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: theme.hintColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 3. Stock List
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 30),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final item = sortedItems[index];
+                  return _StockListTile(
+                    rank: index + 1,
+                    item: item,
+                    onTap: () {
+                         // TODO: Detail Page
+                     },
+                  );
+                },
+                childCount: sortedItems.length,
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildSortToggle(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          height: 34,
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: theme.dividerColor.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _SortPillItem(
-                text: '주가순',
-                selected: _sortType == SortType.price,
-                onTap: () => setState(() => _sortType = SortType.price),
-              ),
-              _SortPillItem(
-                text: '등락률순',
-                selected: _sortType == SortType.changeRate,
-                onTap: () => setState(() => _sortType = SortType.changeRate),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
-class _SortPillItem extends StatelessWidget {
-  final String text;
-  final bool selected;
-  final VoidCallback onTap;
+class _ThemeSummaryCard extends StatelessWidget {
+  final double avgChangeRate;
+  final int upCount;
+  final int downCount;
 
-  const _SortPillItem({
-    required this.text,
-    required this.selected,
-    required this.onTap,
+  const _ThemeSummaryCard({
+    required this.avgChangeRate,
+    required this.upCount,
+    required this.downCount,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isUp = avgChangeRate >= 0;
+    
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.dividerColor.withOpacity(0.12),
+          width: 1.5, 
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04), // Reduced shadow to emphasize border
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('평균 수익률', 
+                    style: TextStyle(
+                      fontSize: 14, 
+                      color: theme.hintColor.withOpacity(0.8),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // "Strong/Weak" Badge Removed
+                  Text(
+                    '${isUp ? '+' : ''}${avgChangeRate.toStringAsFixed(2)}%',
+                    style: TextStyle(
+                      fontSize: 32, // Slightly larger
+                      fontWeight: FontWeight.w800,
+                      color: isUp ? const Color(0xFFE5484D) : const Color(0xFF2F6FED),
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 1,
+            color: theme.dividerColor.withOpacity(0.1),
+          ),
+          const SizedBox(height: 16),
+          // Advancing / Declining
+          Row(
+            children: [
+              Expanded(
+                child: _buildCountStat(theme, '상승', upCount, const Color(0xFFE5484D), Icons.arrow_upward_rounded),
+              ),
+              Container(
+                width: 1, height: 24,
+                color: theme.dividerColor.withOpacity(0.2),
+              ),
+              Expanded(
+                child: _buildCountStat(theme, '하락', downCount, const Color(0xFF2F6FED), Icons.arrow_downward_rounded),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+  Widget _buildCountStat(ThemeData theme, String label, int count, Color color, IconData icon) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(
+          '$count종목 $label',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface.withOpacity(0.8),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SortSegmentControl extends StatelessWidget {
+  final SortType sortType;
+  final ValueChanged<SortType> onChanged;
+
+  const _SortSegmentControl({required this.sortType, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildSegment('주가순', SortType.price),
+          _buildSegment('등락률순', SortType.changeRate),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSegment(String text, SortType type) {
+    final isSelected = sortType == type;
+    return GestureDetector(
+      onTap: () => onChanged(type),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        alignment: Alignment.center,
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF3B82F6) : Colors.transparent,
+          color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected 
+            ? [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 2))]
+            : [],
         ),
         child: Text(
           text,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: selected ? Colors.white : theme.colorScheme.onSurface.withOpacity(0.70),
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected ? Colors.black : Colors.grey.shade600,
           ),
         ),
       ),
@@ -183,12 +324,14 @@ class _SortPillItem extends StatelessWidget {
   }
 }
 
-/// 카드형 종목 Row (UI 변경 없음)
-class _StockRowCard extends StatelessWidget {
+
+class _StockListTile extends StatelessWidget {
+  final int rank;
   final ThemeStockItem item;
   final VoidCallback onTap;
 
-  const _StockRowCard({
+  const _StockListTile({
+    required this.rank,
     required this.item,
     required this.onTap,
   });
@@ -196,97 +339,98 @@ class _StockRowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final isUp = item.change >= 0;
     final rateColor = isUp ? const Color(0xFFE5484D) : const Color(0xFF2F6FED);
-    final bgColor = rateColor.withOpacity(0.10);
 
-    return Material(
-      color: theme.cardColor,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: theme.dividerColor.withOpacity(0.16)),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-                color: Colors.black.withOpacity(0.04),
-              ),
-            ],
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: theme.dividerColor.withOpacity(0.08),
+            ),
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item.code,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.hintColor.withOpacity(0.9),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+        ),
+        child: Row(
+          children: [
+            // Rank
+            SizedBox(
+              width: 24,
+              child: Text(
+                rank.toString(),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: theme.hintColor.withOpacity(0.4),
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+            ),
+            const SizedBox(width: 12),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${_formatInt(item.price)}원',
-                    style: theme.textTheme.titleSmall?.copyWith(
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.onSurface.withOpacity(0.92),
+                      letterSpacing: -0.2,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${isUp ? '+' : ''}${_formatInt(item.change)}  (${isUp ? '+' : ''}${item.changeRate.toStringAsFixed(2)}%)',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: rateColor,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.code,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: theme.hintColor.withOpacity(0.7),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(width: 10),
-              Icon(Icons.chevron_right_rounded, color: theme.hintColor.withOpacity(0.7)),
-            ],
-          ),
+            ),
+            // Price & Rate
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${_formatInt(item.price)}원',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${isUp ? '+' : ''}${item.changeRate.toStringAsFixed(2)}%',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: rateColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  static String _formatInt(int n) {
+  String _formatInt(int n) {
     final neg = n < 0;
     final s = n.abs().toString();
     final buf = StringBuffer();
     for (int i = 0; i < s.length; i++) {
-      final posFromEnd = s.length - i;
-      buf.write(s[i]);
-      if (posFromEnd > 1 && posFromEnd % 3 == 1) buf.write(',');
+        final posFromEnd = s.length - i;
+        buf.write(s[i]);
+        if (posFromEnd > 1 && posFromEnd % 3 == 1) buf.write(',');
     }
     return neg ? '-${buf.toString()}' : buf.toString();
   }
