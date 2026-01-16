@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 // implements PreferredSizeWidget 사용 시 Scaffold에 들어가는 위젯은 크기를 알고 있어야 한다.
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -27,7 +28,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.search, color: Colors.black, size: 28),
           onPressed: () {
-            // TODO: 검색 페이지로 이동
+            context.push('/search');
           },
         ),
       ],
