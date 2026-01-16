@@ -86,6 +86,15 @@ final GoRouter router = GoRouter(
         return ThemeDetailPage.preview(themeName: themeName);
       },
     ),
+    // Pushed Routes (Slide Transition)
+    GoRoute(
+      path: '/screener/view',
+      builder: (context, state) => const ScreenerPage(),
+    ),
+    GoRoute(
+      path: '/vault/view',
+      builder: (context, state) => const VaultPage(),
+    ),
   ],
 );
 
