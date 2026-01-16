@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/core/widget/pill_toggle.dart';
 
 class PerformanceDataPoint {
   final String period;
@@ -63,7 +64,7 @@ class _PerformanceChartCardState extends State<PerformanceChartCard> {
                 '실적 분석',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              _PillToggle(
+              PillToggle(
                 left: '연간',
                 right: '분기',
                 isLeftSelected: _isAnnual,
@@ -196,85 +197,7 @@ class _ChartSection extends StatelessWidget {
 }
 
 /// 토글: 목표 UI처럼 pill 느낌 (ToggleButtons보다 덜 투박)
-class _PillToggle extends StatelessWidget {
-  final String left;
-  final String right;
-  final bool isLeftSelected;
-  final ValueChanged<bool> onChanged;
 
-  const _PillToggle({
-    required this.left,
-    required this.right,
-    required this.isLeftSelected,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Material(
-      color: theme.dividerColor.withAlpha((0.12 * 255).round()),
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-          height: 34,
-          padding: const EdgeInsets.all(3),
-      child: Row(
-        children: [
-          _PillItem(
-            text: left,
-            selected: isLeftSelected,
-            onTap: () => onChanged(true),
-          ),
-          _PillItem(
-            text: right,
-            selected: !isLeftSelected,
-            onTap: () => onChanged(false),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-}
-
-class _PillItem extends StatelessWidget {
-  final String text;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _PillItem({
-    required this.text,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF3B82F6) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          text,
-          style: theme.textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: selected ? Colors.white : theme.colorScheme.onSurface.withAlpha((0.75 * 255).round()),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 enum _ChartType { bar, line }
 
