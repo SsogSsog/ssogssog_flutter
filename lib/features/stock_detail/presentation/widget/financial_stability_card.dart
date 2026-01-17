@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/presentation/logic/financial_evaluator.dart';
 
 // 데이터 모델 (비율 계산을 위해 double 타입 추가)
 class FinancialStabilityData {
@@ -130,20 +131,13 @@ class FinancialStabilityCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDebtRatioBadge(double ratio) {
-    Color color;
-    String text;
 
-    if (ratio < 100) {
-      color = Colors.green;
-      text = "안정적";
-    } else if (ratio < 200) {
-      color = Colors.orange;
-      text = "보통";
-    } else {
-      color = Colors.red;
-      text = "주의";
-    }
+
+  Widget _buildDebtRatioBadge(double ratio) {
+    // FinancialEvaluator 사용
+    final evaluation = FinancialEvaluator.evaluateDebtRatio(ratio);
+    final color = evaluation.color;
+    final text = evaluation.label;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
