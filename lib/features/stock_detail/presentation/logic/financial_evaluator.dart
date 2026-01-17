@@ -48,6 +48,9 @@ class FinancialEvaluator {
 
   // 3. PBR (주가순자산비율)
   static FinancialEvaluation evaluatePBR(double value) {
+    if (value <= 0) {
+      return _caution('정보없음'); // 자본잠식 등
+    }
     if (value < 1) {
       return _good('저평가'); // 1배 미만
     } else if (value <= 3) {
