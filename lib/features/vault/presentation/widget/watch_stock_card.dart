@@ -27,21 +27,21 @@ class WatchStockCard extends StatelessWidget {
     final Color stateBgColor = isPlus ? const Color(0xFFFFEBEE) : const Color(0xFFE3F2FD);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6), // Margin reduced vertical 8 -> 6
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12), // Radius 16 -> 12
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.08), // Opacity reduced
             spreadRadius: 0,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0), // Padding reduced 20 -> 16/14
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start, // 위쪽 정렬
@@ -53,12 +53,12 @@ class WatchStockCard extends StatelessWidget {
                 Text(
                   stockName,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 16, // 18 -> 16
+                    fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2), // 4 -> 2
                 Text(
                   stockCode,
                   style: const TextStyle(
@@ -67,7 +67,7 @@ class WatchStockCard extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8), // 12 -> 8
                 _buildTag(sector),
               ],
             ),
@@ -80,24 +80,24 @@ class WatchStockCard extends StatelessWidget {
                 Text(
                   price,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 16, // 18 -> 16
+                    fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 6), // 가격과 등락률 사이 간격
+                const SizedBox(height: 4), // 6 -> 4
 
                 // 2. 등락률 배지
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
                   decoration: BoxDecoration(
                     color: stateBgColor, // 연한 배경색
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     fluctuationRate,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12, // 13 -> 12
                       fontWeight: FontWeight.bold,
                       color: stateColor, // 진한 글자색
                     ),
@@ -113,15 +113,15 @@ class WatchStockCard extends StatelessWidget {
 
   Widget _buildTag(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // 12/6 -> 8/4
       decoration: BoxDecoration(
         color: AppColors.lightBlueBackground,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 13,
+          fontSize: 12, // 13 -> 12
           color: AppColors.primaryBlue,
           fontWeight: FontWeight.w600,
         ),

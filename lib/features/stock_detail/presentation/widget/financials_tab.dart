@@ -20,10 +20,30 @@ class FinancialsTab extends StatelessWidget {
 
     // TODO: 실제 데이터 모델을 외부에서 전달받아야 합니다.
     final List<FinancialMetric> summaryMetrics = [
-      const FinancialMetric(name: 'PER', value: '15.8배', evaluation: '보통', badgeColor: Colors.orange),
-      const FinancialMetric(name: 'ROE', value: '9.7%', evaluation: '양호', badgeColor: Colors.green),
-      const FinancialMetric(name: '배당수익률', value: '2.1%', evaluation: '매력적', badgeColor: Colors.blue),
-      const FinancialMetric(name: '부채비율', value: '85%', evaluation: '안정적', badgeColor: Colors.green),
+      const FinancialMetric(
+        name: 'PER',
+        displayValue: '15.8배',
+        rawValue: 15.8,
+        type: FinancialMetricType.per,
+      ),
+      const FinancialMetric(
+        name: 'ROE',
+        displayValue: '9.7%',
+        rawValue: 9.7,
+        type: FinancialMetricType.roe,
+      ),
+      const FinancialMetric(
+        name: '배당수익률',
+        displayValue: '2.1%',
+        rawValue: 2.1,
+        type: FinancialMetricType.dividendYield,
+      ),
+      const FinancialMetric(
+        name: '부채비율',
+        displayValue: '85%',
+        rawValue: 85.0,
+        type: FinancialMetricType.debtRatio,
+      ),
     ];
 
     const annualData = [
