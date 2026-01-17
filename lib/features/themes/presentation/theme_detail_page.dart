@@ -94,12 +94,7 @@ class _ThemeDetailPageState extends State<ThemeDetailPage> {
       appBar: AppBar(
         title: Text(widget.themeName),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, size: 28),
-            onPressed: () => context.push('/search'),
-          ),
-        ],
+
       ),
       body: CustomScrollView(
         controller: _scrollController,
