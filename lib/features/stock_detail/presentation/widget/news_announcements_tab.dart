@@ -186,12 +186,9 @@ class _NewsAnnouncementsTabState extends State<NewsAnnouncementsTab> {
                     height: 54,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[200], // 이미지 로딩 전/실패 시 배경색
-                      image: DecorationImage(
-                        image: NetworkImage(item.thumbnail!),
-                        fit: BoxFit.cover,
-                      ),
+                      color: Colors.grey[200],
                     ),
+                    child: const Icon(Icons.image_outlined, color: Colors.grey),
                   ),
                 ],
               ],
