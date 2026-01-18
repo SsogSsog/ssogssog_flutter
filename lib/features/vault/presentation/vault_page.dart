@@ -93,10 +93,7 @@ class _VaultPageState extends State<VaultPage> {
           }
           return StrategyCard(
             strategy: _strategies[index],
-            onDelete: () {
-              print('Delete strategy: ${_strategies[index].strategyName}');
-              // TODO: 전략 삭제 API 호출 및 리스트 갱신
-            },
+            onDelete: () => _onDeleteStrategy(_strategies[index]),
           );
         },
       );
@@ -155,6 +152,47 @@ class _VaultPageState extends State<VaultPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _onDeleteStrategy(Strategy strategy) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('전략 삭제', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text("'${strategy.strategyName}' 전략을 삭제하시겠습니까?\n삭제된 전략은 복구할 수 없습니다."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx); // 다이얼로그 닫기
+              
+              final success = await _repository.deleteStrategy(strategy.strategyId);
+              if (mounted) {
+                if (success) {
+                  _fetchStrategies(); // 목록 갱신
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('전략이 삭제되었습니다.')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('삭제에 실패했습니다. 다시 시도해주세요.')),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFE53935)),
+            child: const Text('삭제'),
+          ),
+        ],
       ),
     );
   }

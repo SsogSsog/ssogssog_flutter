@@ -45,4 +45,21 @@ class StrategyRepository {
       return [];
     }
   }
+
+  /// 투자 전략 삭제
+  Future<bool> deleteStrategy(int strategyId) async {
+    try {
+      final response = await _apiClient.dio.delete('/members/strategies/$strategyId');
+      
+      if (response.statusCode != null && 
+          response.statusCode! >= 200 && 
+          response.statusCode! < 300) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Strategy Delete Error: $e');
+      return false;
+    }
+  }
 }
