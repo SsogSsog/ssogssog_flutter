@@ -152,13 +152,18 @@ class AppliedFilterBottomSheet extends StatelessWidget {
     }
   }
 
+  String _fmtNum(double v) {
+    if (v % 1 == 0) return v.toInt().toString();
+    return v.toStringAsFixed(1);
+  }
+
   String _mapRange(String name, RangeCondition cond, String unit) {
     if (cond.min != null && cond.max != null) {
-      return '$name ${cond.min!.toInt()}~${cond.max!.toInt()}$unit';
+      return '$name ${_fmtNum(cond.min!)}~${_fmtNum(cond.max!)}$unit';
     } else if (cond.min != null) {
-      return '$name ${cond.min!.toInt()}$unit 이상';
+      return '$name ${_fmtNum(cond.min!)}$unit 이상';
     } else if (cond.max != null) {
-      return '$name ${cond.max!.toInt()}$unit 이하';
+      return '$name ${_fmtNum(cond.max!)}$unit 이하';
     }
     return '$name 전체';
   }
@@ -166,9 +171,9 @@ class AppliedFilterBottomSheet extends StatelessWidget {
   String _mapGrowth(String name, GrowthCondition cond, String unit) {
     final period = cond.basePeriod == MetricBasePeriod.PREV_YEAR ? '(연간)' : '(분기)';
     if (cond.min != null && cond.max != null) {
-      return '$name$period ${cond.min!.toInt()}~${cond.max!.toInt()}$unit';
+      return '$name$period ${_fmtNum(cond.min!)}~${_fmtNum(cond.max!)}$unit';
     } else if (cond.min != null) {
-      return '$name$period ${cond.min!.toInt()}$unit 이상';
+      return '$name$period ${_fmtNum(cond.min!)}$unit 이상';
     }
     return '$name$period 전체';
   }
