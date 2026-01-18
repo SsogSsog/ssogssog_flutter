@@ -49,7 +49,8 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/screener/result',
       builder: (context, state) {
-        final request = state.extra as ScreenerRequest?;
+        final extra = state.extra;
+        final request = extra is ScreenerRequest ? extra : null;
         return ScreenerResultPage(request: request);
       },
     ),
