@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 
-/// 양쪽에서 범위 값을 조절하는 슬라이더 위젯
-class FilterRangeSlider extends StatefulWidget {
+/// 양쪽에서 범위 값을 조절하는 슬라이더 위젯 (Controlled)
+class FilterRangeSlider extends StatelessWidget {
   final String title;
   final String subtitle;
   final double min;
   final double max;
+  final RangeValues? values; // Parent controls this
   final double step;
   final String unit;
+  final Widget? headerAction;
   final Function(RangeValues) onChanged;
 
   const FilterRangeSlider({
@@ -17,54 +19,54 @@ class FilterRangeSlider extends StatefulWidget {
     required this.subtitle,
     required this.min,
     required this.max,
+    required this.values,
     required this.onChanged,
     this.step = 1,
     this.unit = '',
+    this.headerAction,
   });
 
-  @override
-  State<FilterRangeSlider> createState() => _FilterRangeSliderState();
-}
-
-class _FilterRangeSliderState extends State<FilterRangeSlider> {
-  late RangeValues _currentValues;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentValues = RangeValues(widget.min, widget.max); // 전체
-  }
-
   String _rangeText() {
-    final isAll = _currentValues.start <= widget.min && _currentValues.end >= widget.max;
+    final v = values ?? RangeValues(min, max);
+    final isAll = v.start <= min && v.end >= max;
     if (isAll) return '전체';
-    return '${_currentValues.start.toInt()} ~ ${_currentValues.end.toInt()}${widget.unit}';
+    return '${v.start.toInt()} ~ ${v.end.toInt()}$unit';
   }
 
   @override
   Widget build(BuildContext context) {
-    final divisions = widget.step > 0
-        ? ((widget.max - widget.min) / widget.step).round().clamp(1, 1000)
+    final divisions = step > 0
+        ? ((max - min) / step).round().clamp(1, 1000)
         : 1;
+    
+    final displayValues = values ?? RangeValues(min, max);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                  if (widget.subtitle.isNotEmpty) ...[
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  if (subtitle.isNotEmpty) ...[
                     const SizedBox(height: 2),
-                    Text(widget.subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B93A1))),
+                    Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B93A1))),
+                  ],
+                  if (headerAction != null) ...[
+                    const SizedBox(height: 10),
+                    headerAction!,
                   ],
                 ],
               ),
             ),
-            Text(_rangeText(), style: const TextStyle(fontSize: 14, color: AppColors.primaryBlue, fontWeight: FontWeight.w800)),
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(_rangeText(), style: const TextStyle(fontSize: 14, color: AppColors.primaryBlue, fontWeight: FontWeight.w800)),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -78,22 +80,21 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
             inactiveTrackColor: const Color(0xFFE6EAF3),
           ),
           child: RangeSlider(
-            values: _currentValues,
-            min: widget.min,
-            max: widget.max,
+            values: displayValues,
+            min: min,
+            max: max,
             divisions: divisions,
             labels: RangeLabels(
-              _currentValues.start.round().toString(),
-              _currentValues.end.round().toString(),
+              displayValues.start.round().toString(),
+              displayValues.end.round().toString(),
             ),
             onChanged: (v) {
-              double snap(double x) => (x / widget.step).round() * widget.step;
+              double snap(double x) => (x / step).round() * step;
               final next = RangeValues(snap(v.start), snap(v.end));
-              setState(() => _currentValues = RangeValues(
-                next.start.clamp(widget.min, widget.max),
-                next.end.clamp(widget.min, widget.max),
+              onChanged(RangeValues(
+                next.start.clamp(min, max),
+                next.end.clamp(min, max),
               ));
-              widget.onChanged(_currentValues);
             },
           ),
         ),

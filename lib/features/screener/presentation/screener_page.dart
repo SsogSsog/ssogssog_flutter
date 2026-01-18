@@ -2,18 +2,134 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 import 'package:ssogssog_flutter/core/widget/common_app_bar.dart';
+import 'package:ssogssog_flutter/core/widget/pill_toggle.dart';
+import 'package:ssogssog_flutter/features/screener/data/model/screener_models.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_chip_group.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_range_slider.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/widget/filter_slider.dart';
 
-class ScreenerPage extends StatelessWidget {
+class ScreenerPage extends StatefulWidget {
   const ScreenerPage({super.key});
 
+  @override
+  State<ScreenerPage> createState() => _ScreenerPageState();
+}
+
+class _ScreenerPageState extends State<ScreenerPage> {
   static const double _pageH = 20;
-  static const double _cardRadius = 16;
+
+  // --- State Variables ---
+
+  // 1. 기본 정보
+  String? _selectedPriceLabel;
+  String? _selectedMarketCapLabel;
+
+  // 2. 가치/재무 (Min Value)
+  double? _perMin;
+  double? _roeMin;
+  double? _operatingProfitMin;
+  double? _debtRatioMax; // 부채비율은 보통 '이하라면 좋다'가 많지만 여기선 슬라이더 UI에 따라 결정. 일단 Slider가 '이상' 로직이면 Min.
+  // 확인 결과: FilterSlider는 "X 이상"을 표시함. 
+  // 그러나 부채비율은 "X 이하"가 좋은 필터일 수 있음. 기획 확인 필요.
+  // 일단 기존 UI 로직(이상)을 따르되, 사용자가 전체 범위를 선택하면 null 처리.
+  double? _dividendYieldMin;
+
+  // 3. 성장/수급 (Range Value & Period)
+  RangeValues? _salesGrowthRange;
+  MetricBasePeriod _salesGrowthPeriod = MetricBasePeriod.PREV_YEAR;
+
+  double? _netProfitGrowthMin; // UI에 FilterSlider로 되어 있음
+  MetricBasePeriod _netProfitGrowthPeriod = MetricBasePeriod.PREV_YEAR;
+
+  RangeValues? _foreignOwnershipRange;
+
+  // --- Mapping Logic ---
+
+  StockPriceRange? _mapPrice(String? label) {
+    if (label == null) return null;
+    switch (label) {
+      case '1천원 미만': return StockPriceRange.BELOW_1000;
+      case '1천~5천원': return StockPriceRange.FROM_1000_TO_5000;
+      case '5천~1만원': return StockPriceRange.FROM_5000_TO_10000;
+      case '1만~3만원': return StockPriceRange.FROM_10000_TO_30000;
+      case '3만~10만원': return StockPriceRange.FROM_30000_TO_100000;
+      case '10만원 이상': return StockPriceRange.ABOVE_100000;
+      default: return null;
+    }
+  }
+
+  MarketCapBucket? _mapMarketCap(String? label) {
+    if (label == null) return null;
+    switch (label) {
+      case '대형주': return MarketCapBucket.LARGE_CAP;
+      case '중형주': return MarketCapBucket.MID_CAP;
+      case '소형주': return MarketCapBucket.SMALL_CAP;
+      default: return null;
+    }
+  }
+
+  RangeCondition? _makeRange(double? val, double sliderMin, double sliderMax, {bool isMax = false}) {
+    if (val == null) return null;
+    // 슬라이더가 최소값(또는 전체)에 있으면 필터 미적용으로 간주
+    if (val <= sliderMin) return null;
+    
+    // "X 이상" 조건
+    return RangeCondition(min: val);
+  }
+
+  RangeCondition? _makeRangeFromValues(RangeValues? val, double sliderMin, double sliderMax) {
+    if (val == null) return null;
+    // 전체 범위 선택 시 필터 미적용
+    if (val.start <= sliderMin && val.end >= sliderMax) return null;
+    
+    return RangeCondition(min: val.start, max: val.end >= sliderMax ? null : val.end);
+  }
+
+  void _onSearchPressed() {
+    final request = ScreenerRequest(
+      stockPriceRange: _mapPrice(_selectedPriceLabel),
+      marketCapBucket: _mapMarketCap(_selectedMarketCapLabel),
+      
+      per: _makeRange(_perMin, 0, 50),
+      roe: _makeRange(_roeMin, 0, 30),
+      operatingProfitRatio: _makeRange(_operatingProfitMin, 0, 50),
+      debtRatio: _makeRange(_debtRatioMax, 0, 300), // TODO: 부채비율 로직 점검 필요
+      dividendYieldRatio: _makeRange(_dividendYieldMin, 0, 10),
+      
+      salesGrowthRatio: _makeGrowthFromRange(_salesGrowthRange, 0, 100, _salesGrowthPeriod),
+      netProfitGrowthRatio: _makeGrowth(_netProfitGrowthMin, 0, 100, _netProfitGrowthPeriod),
+      
+      foreignOwnershipRate: _makeRangeFromValues(_foreignOwnershipRange, 0, 100),
+    );
+
+    context.push('/screener/result', extra: request);
+  }
+
+  GrowthCondition? _makeGrowth(double? val, double min, double max, MetricBasePeriod period) {
+    if (val == null || val <= min) return null;
+    return GrowthCondition(min: val, basePeriod: period); // 이상 조건
+  }
+
+  GrowthCondition? _makeGrowthFromRange(RangeValues? val, double min, double max, MetricBasePeriod period) {
+    if (val == null) return null;
+    if (val.start <= min && val.end >= max) return null;
+    return GrowthCondition(min: val.start, max: val.end >= max ? null : val.end, basePeriod: period);
+  }
+
+  Widget _buildPeriodToggle(MetricBasePeriod current, ValueChanged<MetricBasePeriod> onChanged) {
+    return PillToggle(
+      left: '연간',
+      right: '분기',
+      isLeftSelected: current == MetricBasePeriod.PREV_YEAR,
+      onChanged: (isLeft) {
+        onChanged(isLeft ? MetricBasePeriod.PREV_YEAR : MetricBasePeriod.PREV_QUARTER);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // ... UI build logic needs to bind to state
     return Scaffold(
       appBar: const CommonAppBar(title: '필터 설정'),
       backgroundColor: const Color(0xFFF6F7FB),
@@ -38,14 +154,16 @@ class ScreenerPage extends StatelessWidget {
                     '1만~3만원', '3만~10만원', '10만원 이상'
                   ],
                   columns: 3,
-                  onSelected: (selected) {},
+                  selectedOption: _selectedPriceLabel, // Added Control
+                  onSelected: (selected) => setState(() => _selectedPriceLabel = selected),
                 ),
                 const SizedBox(height: 20),
                 FilterChipGroup(
                   title: '시가총액',
                   options: const ['대형주', '중형주', '소형주'],
                   columns: 3,
-                  onSelected: (selected) {},
+                  selectedOption: _selectedMarketCapLabel, // Added Control
+                  onSelected: (selected) => setState(() => _selectedMarketCapLabel = selected),
                 ),
               ],
             ),
@@ -64,7 +182,8 @@ class ScreenerPage extends StatelessWidget {
                   max: 50,
                   step: 1,
                   unit: '배',
-                  onChanged: (value) {},
+                  value: _perMin, // Added Control
+                  onChanged: (value) => setState(() => _perMin = value),
                 ),
                 const SizedBox(height: 16),
                 FilterSlider(
@@ -74,7 +193,8 @@ class ScreenerPage extends StatelessWidget {
                   max: 30,
                   step: 1,
                   unit: '%',
-                  onChanged: (value) {},
+                  value: _roeMin, // Added Control
+                  onChanged: (value) => setState(() => _roeMin = value),
                 ),
                 const SizedBox(height: 16),
                 FilterSlider(
@@ -84,7 +204,8 @@ class ScreenerPage extends StatelessWidget {
                   max: 50,
                   step: 1,
                   unit: '%',
-                  onChanged: (value) {},
+                  value: _operatingProfitMin, // Added Control
+                  onChanged: (value) => setState(() => _operatingProfitMin = value),
                 ),
                 const SizedBox(height: 16),
                 FilterSlider(
@@ -94,7 +215,8 @@ class ScreenerPage extends StatelessWidget {
                   max: 300,
                   step: 10,
                   unit: '%',
-                  onChanged: (value) {},
+                  value: _debtRatioMax, // Added Control
+                  onChanged: (value) => setState(() => _debtRatioMax = value),
                 ),
                 const SizedBox(height: 16),
                 FilterSlider(
@@ -104,7 +226,8 @@ class ScreenerPage extends StatelessWidget {
                   max: 10,
                   step: 0.5,
                   unit: '%',
-                  onChanged: (value) {},
+                  value: _dividendYieldMin, // Added Control
+                  onChanged: (value) => setState(() => _dividendYieldMin = value),
                 ),
               ],
             ),
@@ -123,7 +246,12 @@ class ScreenerPage extends StatelessWidget {
                   max: 100,
                   step: 5,
                   unit: '%',
-                  onChanged: (values) {},
+                  headerAction: _buildPeriodToggle(
+                    _salesGrowthPeriod, 
+                    (v) => setState(() => _salesGrowthPeriod = v)
+                  ),
+                  values: _salesGrowthRange, // Added Control
+                  onChanged: (values) => setState(() => _salesGrowthRange = values),
                 ),
                 const SizedBox(height: 16),
                 FilterSlider(
@@ -133,7 +261,12 @@ class ScreenerPage extends StatelessWidget {
                   max: 100,
                   step: 5,
                   unit: '%',
-                  onChanged: (value) {},
+                  headerAction: _buildPeriodToggle(
+                    _netProfitGrowthPeriod, 
+                    (v) => setState(() => _netProfitGrowthPeriod = v)
+                  ),
+                  value: _netProfitGrowthMin, // Added Control
+                  onChanged: (value) => setState(() => _netProfitGrowthMin = value),
                 ),
                 const SizedBox(height: 16),
                 FilterRangeSlider(
@@ -143,7 +276,8 @@ class ScreenerPage extends StatelessWidget {
                   max: 100,
                   step: 5,
                   unit: '%',
-                  onChanged: (values) {},
+                  values: _foreignOwnershipRange, // Added Control
+                  onChanged: (values) => setState(() => _foreignOwnershipRange = values),
                 ),
               ],
             ),
@@ -152,13 +286,11 @@ class ScreenerPage extends StatelessWidget {
       ),
       bottomNavigationBar: _BottomApplyBar(
         label: '검색하기',
-        //  context.go -> context.push
-        onPressed: () => context.push('/screener/result'), 
+        onPressed: _onSearchPressed,
       ),
     );
   }
 }
-
 
 class _SectionCard extends StatelessWidget {
   final String title;
@@ -173,6 +305,7 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ... Existing UI code
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
       decoration: BoxDecoration(
@@ -215,6 +348,7 @@ class _BottomApplyBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ... Existing UI code
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -255,6 +389,7 @@ class _InfoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ... Existing UI code
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
