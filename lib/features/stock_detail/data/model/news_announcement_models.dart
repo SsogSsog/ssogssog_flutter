@@ -77,10 +77,10 @@ class DisclosureItemResponse {
 
   factory DisclosureItemResponse.fromJson(Map<String, dynamic> json) {
     return DisclosureItemResponse(
-      reportName: json['reportName'] as String,
-      receiptNo: json['receiptNo'] as String,
-      submitter: json['submitter'] as String,
-      date: json['date'] as String,
+      reportName: json['reportName'] as String? ?? '',
+      receiptNo: json['receiptNo'] as String? ?? '',
+      submitter: json['submitter'] as String? ?? '',
+      date: json['date'] as String? ?? '',
     );
   }
 }
