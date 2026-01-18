@@ -87,19 +87,33 @@ class AppliedFilterBottomSheet extends StatelessWidget {
                           ),
                         );
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Row(
+                        // 에러 발생 시: 바텀 시트 위에 확실히 뜨도록 다이얼로그(팝업) 사용
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            surfaceTintColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: const Row(
                               children: [
-                                Icon(Icons.error_outline, color: Colors.white, size: 20),
+                                Icon(Icons.error_outline, color: Color(0xFFE53935)),
                                 SizedBox(width: 8),
-                                Text('저장 중 문제가 발생했습니다.'),
+                                Text('저장 실패', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               ],
                             ),
-                            backgroundColor: const Color(0xFFE53935), // 세련된 빨강
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            margin: const EdgeInsets.all(20),
+                            content: const Text(
+                              '전략 저장 중 문제가 발생했습니다.\n잠시 후 다시 시도해주세요.',
+                              style: TextStyle(color: Color(0xFF555555)),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFF111318),
+                                ),
+                                child: const Text('확인', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                           ),
                         );
                       }
