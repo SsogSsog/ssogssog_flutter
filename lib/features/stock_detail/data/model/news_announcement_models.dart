@@ -18,12 +18,13 @@ class PageDTO<T> {
     Map<String, dynamic> json,
     T Function(dynamic json) fromJsonT,
   ) {
+    final contentList = json['content'] as List<dynamic>? ?? [];
     return PageDTO<T>(
-      content: (json['content'] as List<dynamic>).map((e) => fromJsonT(e)).toList(),
-      currentPage: json['currentPage'] as int,
-      size: json['size'] as int,
-      hasNext: json['hasNext'] as bool,
-      totalContentCount: json['totalContentCount'] as int,
+      content: contentList.map((e) => fromJsonT(e)).toList(),
+      currentPage: json['currentPage'] as int? ?? 0,
+      size: json['size'] as int? ?? 0,
+      hasNext: json['hasNext'] as bool? ?? false,
+      totalContentCount: json['totalContentCount'] as int? ?? 0,
     );
   }
 }
