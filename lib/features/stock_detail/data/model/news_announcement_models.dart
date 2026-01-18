@@ -49,9 +49,9 @@ class NewsResponseItem {
 
   factory NewsResponseItem.fromJson(Map<String, dynamic> json) {
     return NewsResponseItem(
-      title: json['title'] as String,
-      link: json['link'] as String,
-      pubDate: json['pubDate'] as String,
+      title: json['title'] as String? ?? '',
+      link: json['link'] as String? ?? '',
+      pubDate: json['pubDate'] as String? ?? '',
       source: json['source'] ?? 'Unknown', // API에는 없지만 UI용
       thumbnail: json['thumbnail'], // API에는 없지만 UI용
     );
