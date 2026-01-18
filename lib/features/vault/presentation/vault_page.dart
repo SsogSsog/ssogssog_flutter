@@ -91,7 +91,13 @@ class _VaultPageState extends State<VaultPage> {
           if (index == _strategies.length) {
             return _buildAddButton();
           }
-          return StrategyCard(strategy: _strategies[index]);
+          return StrategyCard(
+            strategy: _strategies[index],
+            onDelete: () {
+              print('Delete strategy: ${_strategies[index].strategyName}');
+              // TODO: 전략 삭제 API 호출 및 리스트 갱신
+            },
+          );
         },
       );
     } else {

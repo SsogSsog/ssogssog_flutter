@@ -6,94 +6,87 @@ import 'package:ssogssog_flutter/features/vault/data/model/strategy_models.dart'
 
 class StrategyCard extends StatelessWidget {
   final Strategy strategy;
+  final VoidCallback? onDelete; // 삭제 콜백 추가
 
-  const StrategyCard({super.key, required this.strategy});
+  const StrategyCard({
+    super.key, 
+    required this.strategy,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
     // 전략 상세 태그 생성
     final tags = _generateTags(strategy);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            spreadRadius: 0,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 상단: 폴더 아이콘 + 제목 + 실행 버튼
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'assets/images/home/folder.png',
-                        width: 24,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          strategy.strategyName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: Colors.black87,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () {
-                    // 실행 버튼 클릭 시: 검색 결과 페이지로 이동
-                    context.push('/screener/result', extra: strategy.toScreenerRequest());
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F6FA),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
+    return GestureDetector(
+      onTap: () {
+        // 카드 전체 클릭 시: 검색 결과 페이지로 이동 (실행)
+        context.push('/screener/result', extra: strategy.toScreenerRequest());
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              spreadRadius: 0,
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 상단: 폴더 아이콘 + 제목 + 삭제 버튼
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
                     child: Row(
                       children: [
-                        Text(
-                          '실행',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        Image.asset(
+                          'assets/images/home/folder.png',
+                          width: 24,
+                          fit: BoxFit.contain,
                         ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.play_arrow_rounded,
-                          size: 16,
-                          color: Colors.grey[700],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            strategy.strategyName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  
+                  // 삭제 버튼 (X 아이콘)
+                  GestureDetector(
+                    onTap: onDelete,
+                    behavior: HitTestBehavior.opaque, // 터치 영역 확보
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: Colors.grey[400],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 12),
 
@@ -124,7 +117,8 @@ class StrategyCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+  ); // Missing parenthesis fixed here
   }
 
   Widget _buildTag(String label) {
