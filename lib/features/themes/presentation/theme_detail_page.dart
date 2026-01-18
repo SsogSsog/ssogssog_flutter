@@ -85,7 +85,9 @@ class _ThemeDetailPageState extends State<ThemeDetailPage> {
     final sortedItems = widget.items.sortedBy(_sortType);
 
     // Mock Summary Data
-    final double avgChangeRate = 1.25;
+    final double avgChangeRate = widget.items.isEmpty
+        ? 0.0
+        : widget.items.map((e) => e.changeRate).reduce((a, b) => a + b) / widget.items.length;
     final int upCount = widget.items.where((e) => e.changeRate > 0).length;
     final int downCount = widget.items.where((e) => e.changeRate < 0).length;
 
