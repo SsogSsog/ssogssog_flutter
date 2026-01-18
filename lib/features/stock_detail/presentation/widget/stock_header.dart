@@ -69,11 +69,12 @@ class StockHeader extends StatelessWidget {
                 ],
               ),
               IconButton(
+                tooltip: '찜하기', // Tooltip 추가
                 onPressed: () {
                   // TODO: 찜하기 기능 구현
                 },
                 icon: const Icon(Icons.favorite_border_rounded, size: 28, color: Colors.grey),
-                constraints: const BoxConstraints(),
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48), // 최소 탭 영역 보장
                 padding: EdgeInsets.zero,
               ),
             ],
