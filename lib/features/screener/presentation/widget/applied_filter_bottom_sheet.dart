@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 import 'package:ssogssog_flutter/features/screener/data/model/screener_models.dart';
+import 'package:ssogssog_flutter/features/vault/data/repository/strategy_repository.dart';
 
 /// '적용된 필터'의 상세 내용을 보여주는 바텀 시트 위젯
 class AppliedFilterBottomSheet extends StatelessWidget {
@@ -68,8 +69,55 @@ class AppliedFilterBottomSheet extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: 이 조건 저장 기능
+                  onPressed: () async {
+                    if (request == null) return;
+                    
+                    // 저장 API 호출
+                    final repo = StrategyRepository();
+                    final success = await repo.saveStrategy(request!);
+
+                    if (context.mounted) {
+                      if (success) {
+                        Navigator.pop(context); // 바텀 시트 닫기
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('전략이 보관함에 저장되었습니다.'),
+                            behavior: SnackBarBehavior.floating, // 좀 더 예쁘게
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        // 에러 발생 시: 바텀 시트 위에 확실히 뜨도록 다이얼로그(팝업) 사용
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            surfaceTintColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: const Row(
+                              children: [
+                                Icon(Icons.error_outline, color: Color(0xFFE53935)),
+                                SizedBox(width: 8),
+                                Text('저장 실패', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            content: const Text(
+                              '전략 저장 중 문제가 발생했습니다.\n잠시 후 다시 시도해주세요.',
+                              style: TextStyle(color: Color(0xFF555555)),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFF111318),
+                                ),
+                                child: const Text('확인', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -178,4 +226,3 @@ class AppliedFilterBottomSheet extends StatelessWidget {
     return '$name$period 전체';
   }
 }
-
