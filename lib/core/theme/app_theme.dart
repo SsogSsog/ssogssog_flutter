@@ -10,10 +10,49 @@ class AppColors {
 }
 
 class AppTheme {
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      fontFamily: 'Pretendard',
+      brightness: Brightness.dark,
+      
+      colorScheme: const ColorScheme(
+        brightness: Brightness.dark,
+        primary: AppColors.primaryBlue,
+        onPrimary: AppColors.white,
+        background: Color(0xFF121212), // 다크 모드 배경
+        onBackground: AppColors.white,
+        surface: Color(0xFF1E1E1E),    // 다크 모드 카드 배경
+        onSurface: AppColors.white,
+        secondary: AppColors.primaryBlue,
+        onSecondary: AppColors.white,
+        error: Colors.redAccent,
+        onError: AppColors.black,
+      ),
+
+      scaffoldBackgroundColor: const Color(0xFF121212),
+
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          color: AppColors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: IconThemeData(
+          color: AppColors.white,
+        ),
+      ),
+       
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+    );
+  }
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-
       fontFamily: 'Pretendard',
       
       // 앱의 기본 색상 팔레트 정의

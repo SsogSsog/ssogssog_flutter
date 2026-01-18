@@ -55,13 +55,28 @@ class StockHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. 종목명, 종목코드
+          // 1. 종목명, 종목코드 + 찜하기 버튼
           Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(data.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(width: 8),
-              Text(data.code, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(data.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  Text(data.code, style: const TextStyle(fontSize: 16, color: Colors.grey)),
+                ],
+              ),
+              IconButton(
+                tooltip: '찜하기', // Tooltip 추가
+                onPressed: () {
+                  // TODO: 찜하기 기능 구현
+                },
+                icon: const Icon(Icons.favorite_border_rounded, size: 28, color: Colors.grey),
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48), // 최소 탭 영역 보장
+                padding: EdgeInsets.zero,
+              ),
             ],
           ),
           const SizedBox(height: 12),

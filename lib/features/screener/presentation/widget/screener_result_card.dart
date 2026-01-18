@@ -118,15 +118,7 @@ class ScreenerResultCard extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(width: 10),
 
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.star_border_rounded, color: Color(0xFF8B93A1)),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                splashRadius: 22,
-              ),
             ],
           ),
         ),
