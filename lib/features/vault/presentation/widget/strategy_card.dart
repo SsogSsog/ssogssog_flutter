@@ -139,6 +139,7 @@ class StrategyCard extends StatelessWidget {
     );
   }
 
+
   // --- Tag Generation Helpers ---
   List<String> _generateTags(Strategy s) {
     final list = <String>[];
