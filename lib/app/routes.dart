@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/widget/bottom_tap_scaffold.dart';
 import 'package:ssogssog_flutter/features/home/presentation/home_page.dart';
+import 'package:ssogssog_flutter/features/screener/data/model/screener_models.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/screener_page.dart';
 import 'package:ssogssog_flutter/features/screener/presentation/screener_result_page.dart';
 import 'package:ssogssog_flutter/features/settings/presentation/settings_page.dart';
@@ -47,7 +48,10 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: '/screener/result',
-      builder: (context, state) => const ScreenerResultPage(),
+      builder: (context, state) {
+        final request = state.extra as ScreenerRequest?;
+        return ScreenerResultPage(request: request);
+      },
     ),
     GoRoute(
       path: '/stock/:stockCode',

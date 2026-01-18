@@ -9,6 +9,7 @@ class FilterRangeSlider extends StatefulWidget {
   final double max;
   final double step;
   final String unit;
+  final Widget? headerAction;
   final Function(RangeValues) onChanged;
 
   const FilterRangeSlider({
@@ -20,6 +21,7 @@ class FilterRangeSlider extends StatefulWidget {
     required this.onChanged,
     this.step = 1,
     this.unit = '',
+    this.headerAction,
   });
 
   @override
@@ -51,6 +53,7 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
@@ -61,10 +64,17 @@ class _FilterRangeSliderState extends State<FilterRangeSlider> {
                     const SizedBox(height: 2),
                     Text(widget.subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B93A1))),
                   ],
+                  if (widget.headerAction != null) ...[
+                    const SizedBox(height: 10),
+                    widget.headerAction!,
+                  ],
                 ],
               ),
             ),
-            Text(_rangeText(), style: const TextStyle(fontSize: 14, color: AppColors.primaryBlue, fontWeight: FontWeight.w800)),
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(_rangeText(), style: const TextStyle(fontSize: 14, color: AppColors.primaryBlue, fontWeight: FontWeight.w800)),
+            ),
           ],
         ),
         const SizedBox(height: 8),

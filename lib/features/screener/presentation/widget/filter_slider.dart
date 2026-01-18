@@ -9,6 +9,7 @@ class FilterSlider extends StatefulWidget {
   final double max;
   final double step; // 추가
   final String unit; // 추가
+  final Widget? headerAction; // 헤더에 추가할 위젯 (예: 기간 토글)
   final Function(double) onChanged;
 
   const FilterSlider({
@@ -20,6 +21,7 @@ class FilterSlider extends StatefulWidget {
     required this.onChanged,
     this.step = 1,
     this.unit = '',
+    this.headerAction,
   });
 
   @override
@@ -50,6 +52,7 @@ class _FilterSliderState extends State<FilterSlider> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
@@ -60,10 +63,17 @@ class _FilterSliderState extends State<FilterSlider> {
                     const SizedBox(height: 2),
                     Text(widget.subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B93A1))),
                   ],
+                  if (widget.headerAction != null) ...[
+                    const SizedBox(height: 10),
+                    widget.headerAction!,
+                  ],
                 ],
               ),
             ),
-            Text(_valueText(), style: const TextStyle(fontSize: 14, color: AppColors.primaryBlue, fontWeight: FontWeight.w800)),
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(_valueText(), style: const TextStyle(fontSize: 14, color: AppColors.primaryBlue, fontWeight: FontWeight.w800)),
+            ),
           ],
         ),
         const SizedBox(height: 8),
