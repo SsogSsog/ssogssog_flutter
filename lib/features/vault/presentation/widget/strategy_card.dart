@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 import 'package:ssogssog_flutter/features/screener/data/model/screener_models.dart';
 import 'package:ssogssog_flutter/features/vault/data/model/strategy_models.dart';

@@ -82,11 +82,22 @@ class Strategy {
       per: per,
       roe: roe,
       debtRatio: debtRatio,
-      operatingProfitRatio: operatingProfitMargin, // Map margin to ratio if needed
-      netProfitGrowthRatio: netProfitGrowthYoY ?? netProfitGrowthQoQ, // Prefer YoY or QoQ based on logic, or just map what's available
-      salesGrowthRatio: salesGrowthYoY ?? salesGrowthQoQ,
+      operatingProfitRatio: operatingProfitMargin, 
+      netProfitGrowthRatio: _toGrowth(netProfitGrowthYoY, MetricBasePeriod.PREV_YEAR) ?? 
+                           _toGrowth(netProfitGrowthQoQ, MetricBasePeriod.PREV_QUARTER),
+      salesGrowthRatio: _toGrowth(salesGrowthYoY, MetricBasePeriod.PREV_YEAR) ?? 
+                       _toGrowth(salesGrowthQoQ, MetricBasePeriod.PREV_QUARTER),
       dividendYieldRatio: dividendYield,
       foreignOwnershipRate: foreignOwnershipRate,
+    );
+  }
+
+  GrowthCondition? _toGrowth(RangeCondition? range, MetricBasePeriod period) {
+    if (range == null) return null;
+    return GrowthCondition(
+      min: range.min,
+      max: range.max,
+      basePeriod: period,
     );
   }
 }
