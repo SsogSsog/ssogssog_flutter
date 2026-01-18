@@ -26,7 +26,33 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
   @override
   void initState() {
     super.initState();
-    _fetchData(0); // 초기 데이터 로드 (급상승)
+    _preloadAllData(); // 초기 데이터 일괄 로드
+  }
+
+  /// 모든 탭의 데이터를 병렬로 미리 가져옵니다.
+  Future<void> _preloadAllData() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // 0: 급상승, 1: 급하락, 2: 거래량
+      final results = await Future.wait([
+        _repository.getRisingStocks(),
+        _repository.getFallingStocks(),
+        _repository.getVolumeStocks(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _cachedData[0] = results[0];
+          _cachedData[1] = results[1];
+          _cachedData[2] = results[2];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error preloading data: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _fetchData(int index) async {
