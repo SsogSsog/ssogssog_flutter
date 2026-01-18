@@ -37,6 +37,9 @@ class FinancialEvaluator {
 
   // 2. ROE (자기자본이익률)
   static FinancialEvaluation evaluateROE(double value) {
+    if (value < 0) {
+      return _caution('적자'); // 적자 기업
+    }
     if (value >= 15) {
       return _good('우수'); // 15% 이상
     } else if (value >= 5) {
