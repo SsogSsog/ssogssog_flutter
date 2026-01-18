@@ -155,7 +155,7 @@ class _ScreenerResultPageState extends State<ScreenerResultPage> {
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   ),
-                  builder: (_) => const AppliedFilterBottomSheet(),
+                  builder: (_) => AppliedFilterBottomSheet(request: widget.request),
                 );
               },
               child: Container(

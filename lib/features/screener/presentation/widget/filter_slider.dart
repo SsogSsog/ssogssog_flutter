@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 
-/// 범위 값을 조절하는 슬라이더 위젯
-class FilterSlider extends StatefulWidget {
+/// 범위 값을 조절하는 슬라이더 위젯 (Controlled)
+class FilterSlider extends StatelessWidget {
   final String title;
   final String subtitle;
   final double min;
   final double max;
-  final double step; // 추가
-  final String unit; // 추가
-  final Widget? headerAction; // 헤더에 추가할 위젯 (예: 기간 토글)
+  final double? value; // Parent controls this
+  final double step; 
+  final String unit; 
+  final Widget? headerAction; 
   final Function(double) onChanged;
 
   const FilterSlider({
@@ -18,35 +19,26 @@ class FilterSlider extends StatefulWidget {
     required this.subtitle,
     required this.min,
     required this.max,
+    required this.value,
     required this.onChanged,
     this.step = 1,
     this.unit = '',
     this.headerAction,
   });
 
-  @override
-  State<FilterSlider> createState() => _FilterSliderState();
-}
-
-class _FilterSliderState extends State<FilterSlider> {
-  late double _currentValue;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentValue = widget.min; // min = 제한 없음(전체)로 취급
-  }
-
   String _valueText() {
-    if (_currentValue <= widget.min) return '전체';
-    return '${_currentValue.toInt()}${widget.unit} 이상';
+    final v = value ?? min;
+    if (v <= min) return '전체';
+    return '${v.toInt()}$unit 이상';
   }
 
   @override
   Widget build(BuildContext context) {
-    final divisions = widget.step > 0
-        ? ((widget.max - widget.min) / widget.step).round().clamp(1, 1000)
+    final divisions = step > 0
+        ? ((max - min) / step).round().clamp(1, 1000)
         : 1;
+
+    final displayValue = value ?? min;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,14 +50,14 @@ class _FilterSliderState extends State<FilterSlider> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                  if (widget.subtitle.isNotEmpty) ...[
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  if (subtitle.isNotEmpty) ...[
                     const SizedBox(height: 2),
-                    Text(widget.subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B93A1))),
+                    Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF8B93A1))),
                   ],
-                  if (widget.headerAction != null) ...[
+                  if (headerAction != null) ...[
                     const SizedBox(height: 10),
-                    widget.headerAction!,
+                    headerAction!,
                   ],
                 ],
               ),
@@ -87,15 +79,14 @@ class _FilterSliderState extends State<FilterSlider> {
             inactiveTrackColor: const Color(0xFFE6EAF3),
           ),
           child: Slider(
-            value: _currentValue,
-            min: widget.min,
-            max: widget.max,
+            value: displayValue,
+            min: min,
+            max: max,
             divisions: divisions,
-            label: _currentValue.round().toString(),
+            label: displayValue.round().toString(),
             onChanged: (v) {
-              final snapped = (v / widget.step).round() * widget.step;
-              setState(() => _currentValue = snapped.clamp(widget.min, widget.max));
-              widget.onChanged(_currentValue);
+              final snapped = (v / step).round() * step;
+              onChanged(snapped.clamp(min, max));
             },
           ),
         ),

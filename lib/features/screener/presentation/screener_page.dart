@@ -154,6 +154,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                     '1만~3만원', '3만~10만원', '10만원 이상'
                   ],
                   columns: 3,
+                  selectedOption: _selectedPriceLabel, // Added Control
                   onSelected: (selected) => setState(() => _selectedPriceLabel = selected),
                 ),
                 const SizedBox(height: 20),
@@ -161,6 +162,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                   title: '시가총액',
                   options: const ['대형주', '중형주', '소형주'],
                   columns: 3,
+                  selectedOption: _selectedMarketCapLabel, // Added Control
                   onSelected: (selected) => setState(() => _selectedMarketCapLabel = selected),
                 ),
               ],
@@ -180,6 +182,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                   max: 50,
                   step: 1,
                   unit: '배',
+                  value: _perMin, // Added Control
                   onChanged: (value) => setState(() => _perMin = value),
                 ),
                 const SizedBox(height: 16),
@@ -190,6 +193,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                   max: 30,
                   step: 1,
                   unit: '%',
+                  value: _roeMin, // Added Control
                   onChanged: (value) => setState(() => _roeMin = value),
                 ),
                 const SizedBox(height: 16),
@@ -200,6 +204,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                   max: 50,
                   step: 1,
                   unit: '%',
+                  value: _operatingProfitMin, // Added Control
                   onChanged: (value) => setState(() => _operatingProfitMin = value),
                 ),
                 const SizedBox(height: 16),
@@ -210,6 +215,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                   max: 300,
                   step: 10,
                   unit: '%',
+                  value: _debtRatioMax, // Added Control
                   onChanged: (value) => setState(() => _debtRatioMax = value),
                 ),
                 const SizedBox(height: 16),
@@ -220,6 +226,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                   max: 10,
                   step: 0.5,
                   unit: '%',
+                  value: _dividendYieldMin, // Added Control
                   onChanged: (value) => setState(() => _dividendYieldMin = value),
                 ),
               ],
@@ -243,6 +250,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                     _salesGrowthPeriod, 
                     (v) => setState(() => _salesGrowthPeriod = v)
                   ),
+                  values: _salesGrowthRange, // Added Control
                   onChanged: (values) => setState(() => _salesGrowthRange = values),
                 ),
                 const SizedBox(height: 16),
@@ -257,6 +265,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                     _netProfitGrowthPeriod, 
                     (v) => setState(() => _netProfitGrowthPeriod = v)
                   ),
+                  value: _netProfitGrowthMin, // Added Control
                   onChanged: (value) => setState(() => _netProfitGrowthMin = value),
                 ),
                 const SizedBox(height: 16),
@@ -267,6 +276,7 @@ class _ScreenerPageState extends State<ScreenerPage> {
                   max: 100,
                   step: 5,
                   unit: '%',
+                  values: _foreignOwnershipRange, // Added Control
                   onChanged: (values) => setState(() => _foreignOwnershipRange = values),
                 ),
               ],
