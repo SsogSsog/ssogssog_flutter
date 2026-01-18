@@ -57,13 +57,15 @@ class _ScreenerResultPageState extends State<ScreenerResultPage> {
 
     setState(() => _isLoading = true);
 
-    final result = await _repository.getScreenerResults(
-      request: widget.request!,
-      page: _nextPage,
-      size: 10,
-    );
+    try {
+      final result = await _repository.getScreenerResults(
+        request: widget.request!,
+        page: _nextPage,
+        size: 10,
+      );
 
-    if (mounted) {
+      if (!mounted) return;
+
       if (result != null) {
         setState(() {
           _items.addAll(result.content);
@@ -75,7 +77,17 @@ class _ScreenerResultPageState extends State<ScreenerResultPage> {
           _totalCount = _items.length; 
         });
       }
-      setState(() => _isLoading = false);
+    } catch (e) {
+      if (mounted) {
+        debugPrint('Screener fetch error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('데이터를 불러오는 중 오류가 발생했습니다.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
