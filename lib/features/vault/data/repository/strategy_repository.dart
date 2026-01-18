@@ -1,6 +1,6 @@
-import 'package:dio/dio.dart';
 import 'package:ssogssog_flutter/core/network/api_client.dart';
 import 'package:ssogssog_flutter/features/screener/data/model/screener_models.dart';
+import 'package:ssogssog_flutter/features/vault/data/model/strategy_models.dart';
 
 class StrategyRepository {
   final ApiClient _apiClient = ApiClient();
@@ -25,6 +25,24 @@ class StrategyRepository {
     } catch (e) {
       print('Strategy Save Error: $e');
       return false;
+    }
+  }
+
+  /// 투자 전략 목록 조회
+  Future<List<Strategy>> getStrategies() async {
+    try {
+      final response = await _apiClient.dio.get('/members/strategies');
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final strategyResponse = StrategyResponse.fromJson(response.data);
+        if (strategyResponse.isSuccess && strategyResponse.result != null) {
+          return strategyResponse.result!.strategies;
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Strategy Fetch Error: $e');
+      return [];
     }
   }
 }
