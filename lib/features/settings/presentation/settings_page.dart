@@ -38,11 +38,16 @@ class _SettingsPageState extends State<SettingsPage> {
                   setState(() => _isNotificationEnabled = val);
                 },
               ),
-              _SettingsActionTile(
-                icon: Icons.dark_mode_outlined,
-                title: '화면 모드',
-                trailingText: _getThemeModeText(ThemeService().value),
-                onTap: () => _showThemeSelectionSheet(context),
+              ValueListenableBuilder<ThemeMode>(
+                valueListenable: ThemeService(),
+                builder: (context, mode, child) {
+                  return _SettingsActionTile(
+                    icon: Icons.dark_mode_outlined,
+                    title: '화면 모드',
+                    trailingText: _getThemeModeText(mode),
+                    onTap: () => _showThemeSelectionSheet(context),
+                  );
+                },
               ),
             ],
           ),
