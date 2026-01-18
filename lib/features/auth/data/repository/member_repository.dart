@@ -16,7 +16,7 @@ class MemberRepository {
       print("✅ 회원 등록 성공: ${response.data}");
     } catch (e) {
       print("❌ 회원 등록 실패: $e");
-      // 필요 시 에러 핸들링
+      rethrow; // 에러를 상위로 전파
     }
   }
 }
