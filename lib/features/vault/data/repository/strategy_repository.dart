@@ -1,0 +1,30 @@
+import 'package:dio/dio.dart';
+import 'package:ssogssog_flutter/core/network/api_client.dart';
+import 'package:ssogssog_flutter/features/screener/data/model/screener_models.dart';
+
+class StrategyRepository {
+  final ApiClient _apiClient = ApiClient();
+
+  /// 투자 전략 저장
+  /// [request] : 저장할 필터 조건들
+  /// Return: 성공 시 true, 실패 시 false (간단한 처리)
+  Future<bool> saveStrategy(ScreenerRequest request) async {
+    try {
+      final response = await _apiClient.dio.post(
+        '/members/strategies',
+        data: request.toJson(),
+      );
+      
+      // 200~299 사이면 성공으로 간주
+      if (response.statusCode != null && 
+          response.statusCode! >= 200 && 
+          response.statusCode! < 300) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Strategy Save Error: $e');
+      return false;
+    }
+  }
+}

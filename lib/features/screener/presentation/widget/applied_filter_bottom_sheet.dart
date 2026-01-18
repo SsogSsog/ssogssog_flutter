@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ssogssog_flutter/core/theme/app_theme.dart';
 import 'package:ssogssog_flutter/features/screener/data/model/screener_models.dart';
+import 'package:ssogssog_flutter/features/vault/data/repository/strategy_repository.dart';
 
 /// '적용된 필터'의 상세 내용을 보여주는 바텀 시트 위젯
 class AppliedFilterBottomSheet extends StatelessWidget {
@@ -68,8 +69,41 @@ class AppliedFilterBottomSheet extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: 이 조건 저장 기능
+                  onPressed: () async {
+                    if (request == null) return;
+                    
+                    // 저장 API 호출
+                    final repo = StrategyRepository();
+                    final success = await repo.saveStrategy(request!);
+
+                    if (context.mounted) {
+                      if (success) {
+                        Navigator.pop(context); // 바텀 시트 닫기
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('전략이 보관함에 저장되었습니다.'),
+                            behavior: SnackBarBehavior.floating, // 좀 더 예쁘게
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.error_outline, color: Colors.white, size: 20),
+                                SizedBox(width: 8),
+                                Text('저장 중 문제가 발생했습니다.'),
+                              ],
+                            ),
+                            backgroundColor: const Color(0xFFE53935), // 세련된 빨강
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            margin: const EdgeInsets.all(20),
+                          ),
+                        );
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -178,4 +212,3 @@ class AppliedFilterBottomSheet extends StatelessWidget {
     return '$name$period 전체';
   }
 }
-
