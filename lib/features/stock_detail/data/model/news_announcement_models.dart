@@ -52,8 +52,8 @@ class NewsResponseItem {
       title: json['title'] as String? ?? '',
       link: json['link'] as String? ?? '',
       pubDate: json['pubDate'] as String? ?? '',
-      source: json['source'] ?? 'Unknown', // API에는 없지만 UI용
-      thumbnail: json['thumbnail'], // API에는 없지만 UI용
+      source: json['source'] as String? ?? 'Unknown', // API에는 없지만 UI용
+      thumbnail: json['thumbnail'] as String?, // API에는 없지만 UI용
     );
   }
 }
