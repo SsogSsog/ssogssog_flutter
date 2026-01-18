@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:ssogssog_flutter/features/home/data/model/home_ranking_models.dart';
+import 'package:ssogssog_flutter/features/home/data/repository/home_repository.dart';
 
 class MarketRankingSection extends StatefulWidget {
   const MarketRankingSection({super.key});
@@ -8,14 +11,59 @@ class MarketRankingSection extends StatefulWidget {
 }
 
 class _MarketRankingSectionState extends State<MarketRankingSection> {
+  final HomeRepository _repository = HomeRepository();
+
   // 현재 선택된 탭 (0: 급상승, 1: 급하락, 2: 거래량)
   int _selectedIndex = 0;
 
   // 탭 메뉴 이름들
   final List<String> _tabs = ['🚀 급상승', '💧 급하락', '🔥 거래량'];
 
+  // 데이터 캐싱 (Key: Tab Index, Value: List<StockRankingItem>)
+  final Map<int, List<StockRankingItem>> _cachedData = {};
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData(0); // 초기 데이터 로드 (급상승)
+  }
+
+  Future<void> _fetchData(int index) async {
+    if (_cachedData.containsKey(index)) return; // 이미 데이터가 있으면 패스
+
+    setState(() => _isLoading = true);
+
+    List<StockRankingItem> result = [];
+    try {
+      if (index == 0) {
+        result = await _repository.getRisingStocks();
+      } else if (index == 1) {
+        result = await _repository.getFallingStocks();
+      } else {
+        result = await _repository.getVolumeStocks();
+      }
+    } catch (e) {
+      print('Error loading ranking data: $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _cachedData[index] = result;
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _onTabChanged(int index) {
+    setState(() => _selectedIndex = index);
+    _fetchData(index);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentList = _cachedData[_selectedIndex] ?? [];
+
     return Column(
       children: [
         // 1. 회색 구분선
@@ -54,11 +102,7 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
                     final isSelected = _selectedIndex == index;
                     return Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedIndex = index;
-                          });
-                        },
+                        onTap: () => _onTabChanged(index),
                         child: Container(
                           margin: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -66,12 +110,12 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
                             borderRadius: BorderRadius.circular(10),
                             boxShadow: isSelected
                                 ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              )
-                            ]
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ]
                                 : [],
                           ),
                           alignment: Alignment.center,
@@ -80,7 +124,7 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight:
-                              isSelected ? FontWeight.w800 : FontWeight.w500,
+                                  isSelected ? FontWeight.w800 : FontWeight.w500,
                               color: isSelected
                                   ? const Color(0xFF6FABEB)
                                   : Colors.grey[600],
@@ -95,8 +139,19 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
 
               const SizedBox(height: 20),
 
-              // 4. 주식 리스트 (5위까지만 표시)
-              _buildRankingList(),
+              // 4. 주식 리스트
+              if (_isLoading && currentList.isEmpty)
+                const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator.adaptive()),
+                )
+              else if (currentList.isEmpty)
+                const SizedBox(
+                  height: 200,
+                  child: Center(child: Text('데이터가 없습니다.')),
+                )
+              else
+                _buildRankingList(currentList),
 
               const SizedBox(height: 40), // 하단 여백
             ],
@@ -107,88 +162,104 @@ class _MarketRankingSectionState extends State<MarketRankingSection> {
   }
 
   // 랭킹 리스트 빌더
-  Widget _buildRankingList() {
+  Widget _buildRankingList(List<StockRankingItem> items) {
     return Column(
-      children: List.generate(5, (index) {
-        final rank = index + 1;
+      children: List.generate(items.length, (index) {
+        final item = items[index];
+        final rank = item.rank > 0 ? item.rank : index + 1; // API 랭크가 0이면 인덱스 사용
+        
+        // 등락률에 따른 색상 결정 (상승: 빨강, 하락: 파랑, 보합: 검정/회색)
+        Color rateColor;
+        Color rateBgColor;
+        if (item.changeRate > 0) {
+          rateColor = const Color(0xFFFF6B6B);
+          rateBgColor = const Color(0xFFFFEBEE);
+        } else if (item.changeRate < 0) {
+          rateColor = const Color(0xFF4D96FF);
+          rateBgColor = const Color(0xFFE3F2FD);
+        } else {
+          rateColor = Colors.grey;
+          rateBgColor = Colors.grey[200]!;
+        }
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
-          child: Row(
-            children: [
-              // 순위
-              SizedBox(
-                width: 24,
-                child: Text(
-                  '$rank',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: rank <= 3 ? const Color(0xFF6FABEB) : Colors.grey,
+          child: InkWell(
+            onTap: () {
+              // TODO: 종목 상세 이동 (GoRouter 사용 등)
+              // context.push('/stock/${item.stockCode}');
+            },
+            child: Row(
+              children: [
+                // 순위
+                SizedBox(
+                  width: 24,
+                  child: Text(
+                    '$rank',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: rank <= 3 ? const Color(0xFF6FABEB) : Colors.grey,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
+                const SizedBox(width: 12),
 
-              // 종목명 & 코드
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // 종목명 & 코드
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.corpName,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        item.stockCode,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 가격 & 등락률
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      '삼성전자',
-                      style: TextStyle(
+                    Text(
+                      '${NumberFormat('#,###').format(item.currentPrice)}원',
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
                       ),
                     ),
-                    Text(
-                      '005930',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
+                    const SizedBox(height: 2),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: rateBgColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${item.changeRate > 0 ? '+' : ''}${item.changeRate}%',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: rateColor,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-
-              // 가격 & 등락률
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  const Text(
-                    '72,500원',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  // TODO: [병합 시 주의] 현재 등락률 배지 색상과 값은 선택된 탭(_selectedIndex)에 의존하는 모킹 로직입니다.
-                  // 실제 데이터 통합 시에는 각 종목 객체의 실제 changeRate 값을 기반으로 색상과 텍스트를 결정하도록 수정해야 합니다. (By CodeRabbit)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _selectedIndex == 1
-                          ? const Color(0xFFE3F2FD) // 하락(파란 배경)
-                          : const Color(0xFFFFEBEE), // 상승(빨간 배경)
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      _selectedIndex == 1 ? '-1.2%' : '+2.5%',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: _selectedIndex == 1
-                            ? const Color(0xFF4D96FF) // 파란 글씨
-                            : const Color(0xFFFF6B6B), // 빨간 글씨
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }),
