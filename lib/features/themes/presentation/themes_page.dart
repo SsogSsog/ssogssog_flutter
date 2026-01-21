@@ -113,7 +113,7 @@ class _SearchBar extends StatelessWidget {
           readOnly: true,
           onTap: () => context.push('/search'),
           decoration: InputDecoration(
-            hintText: '테마 또는 종목 검색',
+            hintText: '종목명, 종목코드 검색',
             prefixIcon: Icon(Icons.search, color: theme.hintColor.withOpacity(0.8)),
             filled: true,
             fillColor: Colors.transparent,

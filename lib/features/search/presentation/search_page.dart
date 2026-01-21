@@ -154,7 +154,7 @@ class _SearchPageState extends State<SearchPage> {
             textInputAction: TextInputAction.search,
             style: const TextStyle(fontSize: 16),
             decoration: InputDecoration(
-              hintText: '종목명, 지수, 코인 검색',
+              hintText: '종목명, 종목코드 검색',
               hintStyle: TextStyle(
                 color: theme.hintColor.withOpacity(0.5),
                 fontSize: 16,
@@ -190,6 +190,7 @@ class _SearchPageState extends State<SearchPage> {
         query: _query,
         scrollController: _scrollController,
         isLoading: _isLoading,
+        isFullSearch: true,
       );
     } else {
       // Autocomplete Suggestions (No Pagination)
@@ -197,6 +198,7 @@ class _SearchPageState extends State<SearchPage> {
         results: _autocompleteResults,
         query: _query,
         isLoading: false, // Autocomplete doesn't show bottom loader
+        isFullSearch: false,
       );
     }
   }
