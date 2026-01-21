@@ -65,3 +65,128 @@ class ThemeStatsResponse {
     );
   }
 }
+
+// --- Detail Page Models ---
+
+class ThemeCountResult {
+  final int totalCount;
+  final int risingCount;
+  final int fallingCount;
+
+  ThemeCountResult({
+    required this.totalCount,
+    required this.risingCount,
+    required this.fallingCount,
+  });
+
+  factory ThemeCountResult.fromJson(Map<String, dynamic> json) {
+    return ThemeCountResult(
+      totalCount: json['totalCount'] as int? ?? 0,
+      risingCount: json['risingCount'] as int? ?? 0,
+      fallingCount: json['fallingCount'] as int? ?? 0,
+    );
+  }
+}
+
+class ThemeCountResponse {
+  final bool isSuccess;
+  final String message;
+  final ThemeCountResult result;
+
+  ThemeCountResponse({
+    required this.isSuccess,
+    required this.message,
+    required this.result,
+  });
+
+  factory ThemeCountResponse.fromJson(Map<String, dynamic> json) {
+    return ThemeCountResponse(
+      isSuccess: json['isSuccess'] as bool? ?? false,
+      message: json['message'] as String? ?? '',
+      result: json['result'] != null
+          ? ThemeCountResult.fromJson(json['result'] as Map<String, dynamic>)
+          : ThemeCountResult(totalCount: 0, risingCount: 0, fallingCount: 0),
+    );
+  }
+}
+
+class ThemeStockItem {
+  final int stockId;
+  final String corpName;
+  final String stockCode;
+  final int closePrice;
+  final int volume;
+  final double changeRate;
+
+  ThemeStockItem({
+    required this.stockId,
+    required this.corpName,
+    required this.stockCode,
+    required this.closePrice,
+    required this.volume,
+    required this.changeRate,
+  });
+
+  factory ThemeStockItem.fromJson(Map<String, dynamic> json) {
+    return ThemeStockItem(
+      stockId: json['stockId'] as int? ?? 0,
+      corpName: json['corpName'] as String? ?? '',
+      stockCode: json['stockCode'] as String? ?? '',
+      closePrice: json['closePrice'] as int? ?? 0,
+      volume: json['volume'] as int? ?? 0,
+      changeRate: (json['changeRate'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+class ThemeStockResult {
+  final List<ThemeStockItem> content;
+  final int currentPage;
+  final int size;
+  final bool hasNext;
+  final int totalContentCount;
+
+  ThemeStockResult({
+    required this.content,
+    required this.currentPage,
+    required this.size,
+    required this.hasNext,
+    required this.totalContentCount,
+  });
+
+  factory ThemeStockResult.fromJson(Map<String, dynamic> json) {
+    return ThemeStockResult(
+      content: (json['content'] as List?)
+              ?.map((e) => ThemeStockItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      currentPage: json['currentPage'] as int? ?? 0,
+      size: json['size'] as int? ?? 0,
+      hasNext: json['hasNext'] as bool? ?? false,
+      totalContentCount: json['totalContentCount'] as int? ?? 0,
+    );
+  }
+}
+
+class ThemeStockResponse {
+  final bool isSuccess;
+  final String message;
+  final ThemeStockResult? result;
+
+  ThemeStockResponse({
+    required this.isSuccess,
+    required this.message,
+    this.result,
+  });
+
+  factory ThemeStockResponse.fromJson(Map<String, dynamic> json) {
+    return ThemeStockResponse(
+      isSuccess: json['isSuccess'] as bool? ?? false,
+      message: json['message'] as String? ?? '',
+      result: json['result'] != null
+          ? ThemeStockResult.fromJson(json['result'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+}
+

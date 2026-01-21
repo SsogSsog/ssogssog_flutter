@@ -1,62 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-/// (실제) 테마에 속한 종목 모델
-class ThemeStockItem {
-  final String name;
-  final String code;
-  final int price; // 현재가
-  final int change; // 등락금액 (+/-)
-  final double changeRate; // 등락률 (+/-)
-
-  const ThemeStockItem({
-    required this.name,
-    required this.code,
-    required this.price,
-    required this.change,
-    required this.changeRate,
-  });
-}
-
-enum SortType { price, changeRate }
-
-/// 정렬 책임 분리
-extension ThemeStockSorting on List<ThemeStockItem> {
-  List<ThemeStockItem> sortedBy(SortType type) {
-    final copied = [...this];
-    copied.sort((a, b) {
-      if (type == SortType.price) return b.price.compareTo(a.price); // 가격 높은 순
-      return b.changeRate.compareTo(a.changeRate); // 등락률 높은 순
-    });
-    return copied;
-  }
-}
+import 'package:ssogssog_flutter/features/themes/data/model/theme_models.dart';
+import 'package:ssogssog_flutter/features/themes/data/repository/theme_repository.dart';
 
 /// 특정 테마에 속한 종목 목록을 보여주는 페이지
 class ThemeDetailPage extends StatefulWidget {
   final String themeName;
-  final List<ThemeStockItem> items;
+  final ThemeItem? themeItem; // List Page에서 넘어온 기본 정보 (평균 등락률용)
 
   const ThemeDetailPage({
     super.key,
     required this.themeName,
-    required this.items,
+    this.themeItem,
   });
 
-  /// 개발/미리보기용
+  /// 개발/미리보기용 (더 이상 사용 안함, 하위 호환 위해 남겨둠 or 삭제)
   factory ThemeDetailPage.preview({Key? key, required String themeName}) {
-    // Mock Data
-    const dummy = [
-      ThemeStockItem(name: '삼성전자', code: '005930', price: 71000, change: 1200, changeRate: 1.72),
-      ThemeStockItem(name: 'LG에너지솔루션', code: '373220', price: 392000, change: -4500, changeRate: -1.14),
-      ThemeStockItem(name: '포스코퓨처엠', code: '003670', price: 311500, change: 8500, changeRate: 2.81),
-      ThemeStockItem(name: '에코프로비엠', code: '247540', price: 210000, change: -3200, changeRate: -1.50),
-      ThemeStockItem(name: '삼성SDI', code: '006400', price: 373000, change: 2000, changeRate: 0.54),
-      ThemeStockItem(name: '엘앤에프', code: '066970', price: 119000, change: -900, changeRate: -0.75),
-      ThemeStockItem(name: 'SK하이닉스', code: '000660', price: 132000, change: 3000, changeRate: 2.32),
-      ThemeStockItem(name: 'NAVER', code: '035420', price: 210500, change: -1500, changeRate: -0.71),
-    ];
-    return ThemeDetailPage(key: key, themeName: themeName, items: dummy);
+    return ThemeDetailPage(key: key, themeName: themeName);
   }
 
   @override
@@ -64,13 +24,31 @@ class ThemeDetailPage extends StatefulWidget {
 }
 
 class _ThemeDetailPageState extends State<ThemeDetailPage> {
-  SortType _sortType = SortType.price;
-  late ScrollController _scrollController;
+  final ThemeRepository _repository = ThemeRepository();
+  final ScrollController _scrollController = ScrollController();
+
+  // Data State
+  ThemeCountResult? _countResult;
+  List<ThemeStockItem> _items = [];
+
+  // Paging State
+  bool _isLoading = false;
+  int _page = 0;
+  bool _hasNext = true;
+  static const int _pageSize = 20;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
+    _fetchCounts();
+    _fetchNextPage();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        _fetchNextPage();
+      }
+    });
   }
 
   @override
@@ -79,29 +57,66 @@ class _ThemeDetailPageState extends State<ThemeDetailPage> {
     super.dispose();
   }
 
+  Future<void> _fetchCounts() async {
+    final result = await _repository.getThemeDetailCounts(widget.themeName);
+    if (mounted && result != null) {
+      setState(() {
+        _countResult = result;
+      });
+    }
+  }
+
+  Future<void> _fetchNextPage() async {
+    if (_isLoading || !_hasNext) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await _repository.getThemeStockList(
+      widget.themeName,
+      _page,
+      _pageSize,
+    );
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        if (result != null) {
+          _items.addAll(result.content);
+          _hasNext = result.hasNext;
+          if (_hasNext) {
+            _page++;
+          }
+        } else {
+          _hasNext = false; // Stop on error
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final sortedItems = widget.items.sortedBy(_sortType);
 
-    // Mock Summary Data
-    final double avgChangeRate = widget.items.isEmpty
-        ? 0.0
-        : widget.items.map((e) => e.changeRate).reduce((a, b) => a + b) / widget.items.length;
-    final int upCount = widget.items.where((e) => e.changeRate > 0).length;
-    final int downCount = widget.items.where((e) => e.changeRate < 0).length;
+    // Use passed themeItem for average rate, or 0.0 if missing
+    final avgChangeRate = widget.themeItem?.changeRateAverage ?? 0.0;
+    
+    // Counts from API 1
+    final upCount = _countResult?.risingCount ?? 0;
+    final downCount = _countResult?.fallingCount ?? 0;
+    final totalCount = _countResult?.totalCount ?? 0;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(widget.themeName),
         centerTitle: false,
-
       ),
       body: CustomScrollView(
         controller: _scrollController,
         slivers: [
-          // 1. Theme Summary (Non-Sliver wrapper) or SliverToBoxAdapter
+          // 1. Theme Summary (Avg Return + Rising/Falling)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -113,19 +128,17 @@ class _ThemeDetailPageState extends State<ThemeDetailPage> {
             ),
           ),
 
-          // 2. Sort Toggle & Total Count
+          // 2. Sort Toggle & Total Count (Visual Only for now as sort is fixed)
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                   _SortSegmentControl(
-                    sortType: _sortType,
-                    onChanged: (val) => setState(() => _sortType = val),
-                  ),
+                   // Placeholder for Sort Control (Disabled/Fixed as per instructions)
+                   const _SortSegmentControl(),
                   Text(
-                    '총 ${widget.items.length}개',
+                    '총 $totalCount개',
                     style: TextStyle(
                       fontSize: 13,
                       color: theme.hintColor,
@@ -143,16 +156,25 @@ class _ThemeDetailPageState extends State<ThemeDetailPage> {
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final item = sortedItems[index];
-                  return _StockListTile(
-                    rank: index + 1,
-                    item: item,
-                    onTap: () {
-                         // TODO: Detail Page
-                     },
-                  );
+                  if (index < _items.length) {
+                    final item = _items[index];
+                    return _StockListTile(
+                      rank: index + 1,
+                      item: item,
+                      onTap: () {
+                        context.push('/stock/${item.stockCode}');
+                      },
+                    );
+                  } else {
+                     return _isLoading 
+                        ? const Center(child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ))
+                        : const SizedBox.shrink();
+                  }
                 },
-                childCount: sortedItems.length,
+                childCount: _items.length + (_hasNext ? 1 : 0),
               ),
             ),
           ),
@@ -189,7 +211,7 @@ class _ThemeSummaryCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04), // Reduced shadow to emphasize border
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -211,11 +233,10 @@ class _ThemeSummaryCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // "Strong/Weak" Badge Removed
                   Text(
                     '${isUp ? '+' : ''}${avgChangeRate.toStringAsFixed(2)}%',
                     style: TextStyle(
-                      fontSize: 32, // Slightly larger
+                      fontSize: 32,
                       fontWeight: FontWeight.w800,
                       color: isUp ? const Color(0xFFE5484D) : const Color(0xFF2F6FED),
                       height: 1.2,
@@ -271,13 +292,11 @@ class _ThemeSummaryCard extends StatelessWidget {
 }
 
 class _SortSegmentControl extends StatelessWidget {
-  final SortType sortType;
-  final ValueChanged<SortType> onChanged;
-
-  const _SortSegmentControl({required this.sortType, required this.onChanged});
+  const _SortSegmentControl();
 
   @override
   Widget build(BuildContext context) {
+    // Fixed visual only as per user instructions
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.withOpacity(0.1),
@@ -287,19 +306,15 @@ class _SortSegmentControl extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildSegment('주가순', SortType.price),
-          _buildSegment('등락률순', SortType.changeRate),
+          _buildSegment('주가순', true),
+          _buildSegment('등락률순', false),
         ],
       ),
     );
   }
 
-  Widget _buildSegment(String text, SortType type) {
-    final isSelected = sortType == type;
-    return GestureDetector(
-      onTap: () => onChanged(type),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+  Widget _buildSegment(String text, bool isSelected) {
+    return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
@@ -316,8 +331,7 @@ class _SortSegmentControl extends StatelessWidget {
             color: isSelected ? Colors.black : Colors.grey.shade600,
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -336,7 +350,7 @@ class _StockListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isUp = item.change >= 0;
+    final isUp = item.changeRate >= 0;
     final rateColor = isUp ? const Color(0xFFE5484D) : const Color(0xFF2F6FED);
 
     return InkWell(
@@ -372,7 +386,7 @@ class _StockListTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.name,
+                    item.corpName,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -381,7 +395,7 @@ class _StockListTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    item.code,
+                    item.stockCode,
                     style: TextStyle(
                       fontSize: 13,
                       color: theme.hintColor.withOpacity(0.7),
@@ -396,7 +410,7 @@ class _StockListTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${_formatInt(item.price)}원',
+                  '${_formatInt(item.closePrice)}원',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

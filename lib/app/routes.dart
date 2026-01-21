@@ -7,6 +7,7 @@ import 'package:ssogssog_flutter/features/screener/presentation/screener_page.da
 import 'package:ssogssog_flutter/features/screener/presentation/screener_result_page.dart';
 import 'package:ssogssog_flutter/features/settings/presentation/settings_page.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/stock_detail_page.dart';
+import 'package:ssogssog_flutter/features/themes/data/model/theme_models.dart';
 import 'package:ssogssog_flutter/features/themes/presentation/theme_detail_page.dart';
 import 'package:ssogssog_flutter/features/themes/presentation/themes_page.dart';
 import 'package:ssogssog_flutter/features/vault/presentation/vault_page.dart';
@@ -88,7 +89,9 @@ final GoRouter router = GoRouter(
             body: Center(child: Text('잘못된 테마입니다')),
           );
         }
-        return ThemeDetailPage.preview(themeName: themeName);
+        final extra = state.extra;
+        final themeItem = extra is ThemeItem ? extra : null;
+        return ThemeDetailPage(themeName: themeName, themeItem: themeItem);
       },
     ),
     // Pushed Routes (Slide Transition)

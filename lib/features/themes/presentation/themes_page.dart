@@ -150,7 +150,7 @@ class _ThemeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: () {
           final encodedThemeName = Uri.encodeComponent(themeItem.themeName);
-          context.push('/themes/$encodedThemeName');
+          context.push('/themes/$encodedThemeName', extra: themeItem);
         },
         child: Ink(
           padding: const EdgeInsets.all(14),
