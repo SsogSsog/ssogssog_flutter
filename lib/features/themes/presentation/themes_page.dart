@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-class TrendingTheme {
-  final String icon; // emoji
-  final String name;
-  final double changeRate;
-  final int stockCount;
-
-  const TrendingTheme({
-    required this.icon,
-    required this.name,
-    required this.changeRate,
-    required this.stockCount,
-  });
-}
+import 'package:ssogssog_flutter/features/themes/data/model/theme_models.dart';
+import 'package:ssogssog_flutter/features/themes/data/repository/theme_repository.dart';
 
 /// 요즘 뜨는 테마 목록을 보여주는 페이지
-class ThemesPage extends StatelessWidget {
+class ThemesPage extends StatefulWidget {
   const ThemesPage({super.key});
 
-  static const List<TrendingTheme> _dummyThemes = [
-    TrendingTheme(icon: '💾', name: '반도체 대장주', changeRate: 3.2, stockCount: 12),
-    TrendingTheme(icon: '🔋', name: '2차전지/배터리', changeRate: -1.5, stockCount: 25),
-    TrendingTheme(icon: '🤖', name: 'AI / 로봇', changeRate: 5.1, stockCount: 31),
-    TrendingTheme(icon: '💊', name: '바이오 / 제약', changeRate: 0.2, stockCount: 58),
-    TrendingTheme(icon: '🚗', name: '자동차 부품', changeRate: -0.5, stockCount: 18),
-    TrendingTheme(icon: '🛒', name: '소비재 / 유통', changeRate: 1.1, stockCount: 22),
-  ];
+  @override
+  State<ThemesPage> createState() => _ThemesPageState();
+}
+
+class _ThemesPageState extends State<ThemesPage> {
+  final ThemeRepository _repository = ThemeRepository();
+  late Future<ThemeStatsResult?> _futureResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureResult = _repository.getThemeStats();
+  }
+
+  Future<void> _refresh() async {
+    setState(() {
+      _futureResult = _repository.getThemeStats();
+    });
+    await _futureResult;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,25 +38,42 @@ class ThemesPage extends StatelessWidget {
           '요즘 뜨는 테마 (Themes)',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        // centerTitle: true, // 취향이면 켜도 됨
       ),
       body: SafeArea(
         child: Column(
           children: [
             _SearchBar(theme: theme),
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  // 기존 0.9는 높이가 조금 답답해 보일 수 있어서 살짝 여유
-                  childAspectRatio: 0.92,
-                ),
-                itemCount: _dummyThemes.length,
-                itemBuilder: (context, index) {
-                  return _ThemeCard(themeItem: _dummyThemes[index]);
+              child: FutureBuilder<ThemeStatsResult?>(
+                future: _futureResult,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('오류 발생: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data?.items.isEmpty == true) {
+                    return const Center(child: Text('등록된 테마가 없습니다.'));
+                  }
+
+                  final data = snapshot.data!;
+                  final items = data.items;
+
+                  return RefreshIndicator(
+                    onRefresh: _refresh,
+                    child: GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.92,
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        return _ThemeCard(themeItem: items[index]);
+                      },
+                    ),
+                  );
                 },
               ),
             ),
@@ -114,7 +131,7 @@ class _SearchBar extends StatelessWidget {
 
 /// 테마 하나를 표시하는 카드 위젯
 class _ThemeCard extends StatelessWidget {
-  final TrendingTheme themeItem;
+  final ThemeItem themeItem;
 
   const _ThemeCard({required this.themeItem});
 
@@ -122,7 +139,7 @@ class _ThemeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final isUp = themeItem.changeRate >= 0;
+    final isUp = themeItem.changeRateAverage >= 0;
     final rateColor = isUp ? Colors.red.shade400 : Colors.blue.shade500;
 
     final cardBorder = theme.dividerColor.withOpacity(0.12);
@@ -132,7 +149,7 @@ class _ThemeCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
-          final encodedThemeName = Uri.encodeComponent(themeItem.name);
+          final encodedThemeName = Uri.encodeComponent(themeItem.themeName);
           context.push('/themes/$encodedThemeName');
         },
         child: Ink(
@@ -156,10 +173,10 @@ class _ThemeCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _EmojiBadge(emoji: themeItem.icon),
+                  _EmojiBadge(emoji: themeItem.emoji),
                   _RatePill(
                     isUp: isUp,
-                    value: themeItem.changeRate,
+                    value: themeItem.changeRateAverage,
                     color: rateColor,
                   ),
                 ],
@@ -169,7 +186,7 @@ class _ThemeCard extends StatelessWidget {
 
               // 중단: 테마명
               Text(
-                themeItem.name,
+                themeItem.themeName,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -184,7 +201,7 @@ class _ThemeCard extends StatelessWidget {
               Align(
                 alignment: Alignment.center,
                 child: Text(
-                  '${themeItem.stockCount}개 종목',
+                  '${themeItem.totalCount}개 종목',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
