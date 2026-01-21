@@ -59,6 +59,7 @@ class SearchResultList extends StatelessWidget {
   }
 }
 
+
 class _AutocompleteListTile extends StatelessWidget {
   final SearchStockItem item;
   final ThemeData theme;
