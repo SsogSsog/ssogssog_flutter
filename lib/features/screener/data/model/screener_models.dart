@@ -117,39 +117,17 @@ class ScreenerItem {
   final int stockId;
   final String stockCode;
   final String corpName;
-  final int currentPrice;
-  final int marketCap;
-  final double per;
-  final double roe;
-  final double netProfitMargin;
-  final double debtRatio;
-  final double salesGrowthYoY;
-  final double netProfitGrowthYoY;
-  final double dividendYield;
-  final double foreignOwnershipRate;
-  
-  // Return rates (not always present in request, but in response)
-  final double? return3M;
-  final double? return6M;
-  final double? return12M;
+  final int closePrice; // Replaced currentPrice
+  final int volume;     // Restored
+  final double changeRate; // Restored
 
   ScreenerItem({
     required this.stockId,
     required this.stockCode,
     required this.corpName,
-    required this.currentPrice,
-    required this.marketCap,
-    required this.per,
-    required this.roe,
-    required this.netProfitMargin,
-    required this.debtRatio,
-    required this.salesGrowthYoY,
-    required this.netProfitGrowthYoY,
-    required this.dividendYield,
-    required this.foreignOwnershipRate,
-    this.return3M,
-    this.return6M,
-    this.return12M,
+    required this.closePrice,
+    required this.volume,
+    required this.changeRate,
   });
 
   factory ScreenerItem.fromJson(Map<String, dynamic> json) {
@@ -157,19 +135,9 @@ class ScreenerItem {
       stockId: json['stockId'] as int? ?? 0,
       stockCode: json['stockCode'] as String? ?? '',
       corpName: json['corpName'] as String? ?? '',
-      currentPrice: json['currentPrice'] as int? ?? 0,
-      marketCap: json['marketCap'] as int? ?? 0,
-      per: (json['per'] as num?)?.toDouble() ?? 0.0,
-      roe: (json['roe'] as num?)?.toDouble() ?? 0.0,
-      netProfitMargin: (json['netProfitMargin'] as num?)?.toDouble() ?? 0.0,
-      debtRatio: (json['debtRatio'] as num?)?.toDouble() ?? 0.0,
-      salesGrowthYoY: (json['salesGrowthYoY'] as num?)?.toDouble() ?? 0.0,
-      netProfitGrowthYoY: (json['netProfitGrowthYoY'] as num?)?.toDouble() ?? 0.0,
-      dividendYield: (json['dividendYield'] as num?)?.toDouble() ?? 0.0,
-      foreignOwnershipRate: (json['foreignOwnershipRate'] as num?)?.toDouble() ?? 0.0,
-      return3M: (json['return3M'] as num?)?.toDouble(),
-      return6M: (json['return6M'] as num?)?.toDouble(),
-      return12M: (json['return12M'] as num?)?.toDouble(),
+      closePrice: json['closePrice'] as int? ?? 0,
+      volume: json['volume'] as int? ?? 0,
+      changeRate: (json['changeRate'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
@@ -179,12 +147,14 @@ class ScreenerResult {
   final int currentPage;
   final int size;
   final bool hasNext;
+  final int totalContentCount; // Added
 
   ScreenerResult({
     required this.content,
     required this.currentPage,
     required this.size,
     required this.hasNext,
+    required this.totalContentCount,
   });
 
   factory ScreenerResult.fromJson(Map<String, dynamic> json) {
@@ -196,6 +166,7 @@ class ScreenerResult {
       currentPage: json['currentPage'] as int? ?? 0,
       size: json['size'] as int? ?? 0,
       hasNext: json['hasNext'] as bool? ?? false,
+      totalContentCount: json['totalContentCount'] as int? ?? 0,
     );
   }
 }
