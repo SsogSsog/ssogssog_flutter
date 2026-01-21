@@ -73,8 +73,8 @@ class _ScreenerResultPageState extends State<ScreenerResultPage> {
           if (_hasNext) {
             _nextPage++;
           }
-          // If backend doesn't give total count, we can only show loaded count so far or hide it.
-          _totalCount = _items.length; 
+          // Backend now provides total count
+          _totalCount = result.totalContentCount; 
         });
       }
     } catch (e) {
@@ -125,21 +125,9 @@ class _ScreenerResultPageState extends State<ScreenerResultPage> {
                       return ScreenerResultCard(
                         name: item.corpName,
                         code: item.stockCode,
-                        price: item.currentPrice,
-                        // Change Rate is not explicitly detailed in ScreenerItem DTO I updated earlier?
-                        // Wait, user provided spec: "stockId, ..., currentPrice, return3M..."
-                        // Ah, "changeRate" (daily change) might not be in the ScreenerItem JSON provided by user?
-                        // "salesGrowthYoY..." etc.
-                        // Let me check user's JSON spec again carefully.
-                        // "currentPrice": 0, "marketCap": 0... "return3M"...
-                        // It seems "Daily Change Rate" is missing from the provided ScreenerItem JSON fields.
-                        // I will use 0.0 or calculate it if possible (can't calc without prev close).
-                        // I'll show return3M or similar, OR just assume 0 for now and ask user later.
-                        // Actually, reusing UI usually expects daily change.
-                        // Let's pass 0.0 for changeRate for now to resolve compile errors, 
-                        // and maybe user means 'return3M' is what they want to see, or daily change is missing.
-                        changeRate: 0.0, 
-                        volume: 0, // Volume also missing in JSON? Yes.
+                        price: item.closePrice,
+                        changeRate: item.changeRate,
+                        volume: item.volume,
                       );
                     },
                   ),
@@ -195,7 +183,7 @@ class _ScreenerResultPageState extends State<ScreenerResultPage> {
           const SizedBox(height: 10),
           // Slice doesn't give total count. Use loaded count.
           Text(
-            '$_totalCount건이 검색되었습니다 (더보기...)', 
+            '$_totalCount건이 검색되었습니다', 
             style: const TextStyle(color: Color(0xFF8B93A1), fontSize: 12.5, fontWeight: FontWeight.w600),
           ),
         ],
