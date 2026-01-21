@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ssogssog_flutter/features/search/data/model/search_models.dart';
 
 class SearchResultList extends StatelessWidget {
-  final List<String> results;
+  final List<SearchStockItem> results;
   final String query;
+  // Optional callback for infinite scroll (only used in Full Search)
+  final ScrollController? scrollController;
+  final bool isLoading;
 
   const SearchResultList({
     super.key,
     required this.results,
     required this.query,
+    this.scrollController,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (results.isEmpty) {
+    if (results.isEmpty && !isLoading) {
       return Center(
         child: Text(
           '검색 결과가 없습니다',
@@ -28,31 +34,60 @@ class SearchResultList extends StatelessWidget {
     }
 
     return ListView.builder(
-      itemCount: results.length,
+      controller: scrollController,
+      itemCount: results.length + (isLoading ? 1 : 0),
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemBuilder: (context, index) {
-        final stockName = results[index];
-        return ListTile(
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: theme.dividerColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.show_chart, size: 20),
+        if (index < results.length) {
+          final item = results[index];
+          return _buildStockTile(context, item, theme);
+        } else {
+          return const Center(child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CircularProgressIndicator(),
+          ));
+        }
+      },
+    );
+  }
+
+  Widget _buildStockTile(BuildContext context, SearchStockItem item, ThemeData theme) {
+    final isUp = item.changeRate >= 0;
+    final rateColor = isUp ? const Color(0xFFE5484D) : const Color(0xFF2F6FED);
+
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: theme.dividerColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        // Simple placeholder icon or could be image if API had logo
+        child: const Icon(Icons.show_chart, size: 20),
+      ),
+      title: RichText(
+        text: _highlightMatch(item.corpName, query, theme),
+      ),
+      subtitle: Row(
+        children: [
+          Text(item.stockCode, style: TextStyle( fontSize: 13, color: theme.hintColor)),
+          const SizedBox(width: 6),
+          // Price Info
+          Text(
+             '${item.closePrice}원', 
+             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)
           ),
-          title: RichText(
-            text: _highlightMatch(stockName, query, theme),
+          const SizedBox(width: 4),
+          Text(
+            '${isUp ? '+' : ''}${item.changeRate}%',
+            style: TextStyle(fontSize: 13, color: rateColor, fontWeight: FontWeight.w500),
           ),
-          subtitle: const Text('005930 · KOSPI'), // Mock sub detail
-          trailing: const Icon(Icons.star_border), // 즐겨찾기 아이콘 (기능 미구현)
-          onTap: () {
-            // TODO: 상세 페이지로 이동
-            // 임시로 Mock Code 하나 넘겨줌
-            context.push('/stock/005930'); 
-          },
-        );
+        ],
+      ),
+      trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+      onTap: () {
+        context.push('/stock/${item.stockCode}'); 
       },
     );
   }
@@ -64,10 +99,8 @@ class SearchResultList extends StatelessWidget {
     if (matches.length <= 1) return TextSpan(text: text, style: TextStyle(color: theme.textTheme.bodyLarge?.color));
 
     final children = <TextSpan>[];
-    int start = 0;
     
     // 단순 포함 여부 하이라이팅 (대소문자 무시)
-    // 실제로는 정규식 등으로 더 정교하게 할 수 있음. 여기선 간단하게 처리.
     final lowerText = text.toLowerCase();
     final lowerQuery = query.toLowerCase();
     int index = lowerText.indexOf(lowerQuery);
