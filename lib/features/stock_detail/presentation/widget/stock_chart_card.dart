@@ -56,6 +56,16 @@ class StockChartCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // [Added] Chart Legend
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _buildLegendItem(color: Colors.black, label: '주가'),
+                  const SizedBox(width: 12),
+                  _buildLegendItem(color: Colors.blueAccent.withAlpha((0.55 * 255).round()), label: '거래량', isCircle: false),
+                ],
+              ),
+              const SizedBox(height: 8),
               RepaintBoundary(
                 child: SizedBox(
                   height: 250,
@@ -90,6 +100,26 @@ class StockChartCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+  Widget _buildLegendItem({required Color color, required String label, bool isCircle = true}) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: color,
+            shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
+            borderRadius: isCircle ? null : BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Colors.grey),
+        ),
+      ],
     );
   }
 }
@@ -198,7 +228,7 @@ class _StockChartPainter extends CustomPainter {
     const padLeft = 10.0;
     const padTop = 12.0;
     const padBottom = 22.0;
-    const padRight = 50.0; // Increased padding for formatted labels
+    const padRight = 60.0; // Increased to 60.0 to prevent label being cut off
 
     final fullRect = Offset.zero & size;
     final plotRect = Rect.fromLTWH(
@@ -242,7 +272,7 @@ class _StockChartPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     final linePaint = Paint()
-      ..color = theme.colorScheme.onSurface.withAlpha((0.55 * 255).round())
+      ..color = Colors.black.withAlpha((0.85 * 255).round()) // Darker black for visibility
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -322,8 +352,8 @@ class _StockChartPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          theme.colorScheme.onSurface.withAlpha((0.10 * 255).round()),
-          theme.colorScheme.onSurface.withAlpha(0),
+          Colors.black.withAlpha((0.15 * 255).round()), // Darker start for gradient
+          Colors.white.withAlpha(0),
         ],
       ).createShader(priceRect);
 
@@ -334,28 +364,19 @@ class _StockChartPainter extends CustomPainter {
     if (showRightAxisLabels) {
       _drawRightLabel(
         canvas,
-        text: _formatIntWithComma(maxPrice.round()), // Formatting Added
+        text: _formatIntWithComma(maxPrice.round()),
         x: plotRect.right + 6,
         y: priceRect.top - 2,
         style: labelStyle,
       );
       _drawRightLabel(
         canvas,
-        text: _formatIntWithComma(minPrice.round()), // Formatting Added
+        text: _formatIntWithComma(minPrice.round()),
         x: plotRect.right + 6,
         y: priceRect.bottom - 12,
         style: labelStyle,
       );
-      
-      // Removed the 0 label for Volume to clean up UI
-      // _drawRightLabel(
-      //   canvas,
-      //   text: '0', 
-      //   x: plotRect.right + 6,
-      //   y: volumeRect.bottom - 6,
-      //   style: labelStyle,
-      // );
-      
+
       // Only show Max Volume
       _drawRightLabel(
         canvas,
