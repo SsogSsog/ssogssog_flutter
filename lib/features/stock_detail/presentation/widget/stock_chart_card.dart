@@ -198,7 +198,7 @@ class _StockChartPainter extends CustomPainter {
     const padLeft = 10.0;
     const padTop = 12.0;
     const padBottom = 22.0;
-    const padRight = 46.0;
+    const padRight = 50.0; // Increased padding for formatted labels
 
     final fullRect = Offset.zero & size;
     final plotRect = Rect.fromLTWH(
@@ -334,18 +334,29 @@ class _StockChartPainter extends CustomPainter {
     if (showRightAxisLabels) {
       _drawRightLabel(
         canvas,
-        text: _formatNumber(maxPrice),
+        text: _formatIntWithComma(maxPrice.round()), // Formatting Added
         x: plotRect.right + 6,
         y: priceRect.top - 2,
         style: labelStyle,
       );
       _drawRightLabel(
         canvas,
-        text: _formatNumber(minPrice),
+        text: _formatIntWithComma(minPrice.round()), // Formatting Added
         x: plotRect.right + 6,
         y: priceRect.bottom - 12,
         style: labelStyle,
       );
+      
+      // Removed the 0 label for Volume to clean up UI
+      // _drawRightLabel(
+      //   canvas,
+      //   text: '0', 
+      //   x: plotRect.right + 6,
+      //   y: volumeRect.bottom - 6,
+      //   style: labelStyle,
+      // );
+      
+      // Only show Max Volume
       _drawRightLabel(
         canvas,
         text: _formatVolume(maxVolume),
@@ -425,6 +436,17 @@ class _StockChartPainter extends CustomPainter {
   String _formatNumber(double v) {
     final n = v.round();
     return n.toString();
+  }
+  
+  String _formatIntWithComma(int n) {
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      final posFromEnd = s.length - i;
+      buf.write(s[i]);
+      if (posFromEnd > 1 && posFromEnd % 3 == 1) buf.write(',');
+    }
+    return buf.toString();
   }
 
   String _formatVolume(double v) {
