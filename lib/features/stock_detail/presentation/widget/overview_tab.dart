@@ -1,5 +1,5 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/model/stock_overview_model.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_basic_info_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_chart_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_company_info_card.dart';
@@ -7,49 +7,92 @@ import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock
 
 /// 종목 상세 페이지의 '개요' 탭 UI 전체를 담고 있는 위젯
 class OverviewTab extends StatelessWidget {
-  const OverviewTab({super.key});
+  final StockOverview? overview;
+
+  const OverviewTab({super.key, this.overview});
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 실제 데이터 모델을 외부에서 전달받아야 합니다.
-    const headerData = StockHeaderData(
-      name: '큐로홀딩스',
-      code: '051780',
-      currentPrice: 1275,
-      change: 95,
-      changeRate: 8.05,
-      volume: 2517785,
-      prevClose: 1180,
-      market: 'KOSDAQ',
+    if (overview == null) {
+      return const Center(child: Text("데이터를 불러올 수 없습니다."));
+    }
+
+    final data = overview!;
+    
+    // 1. 헤더 데이터 매핑
+    final headerData = StockHeaderData(
+      name: data.stockName,
+      code: data.stockCode,
+      currentPrice: data.priceInfo.currentPrice,
+      change: data.priceInfo.changeAmount,
+      changeRate: data.priceInfo.changeRate,
+      volume: data.priceInfo.previousVolume, // API Spec maps previousVolume to this field for display? 
+      // User Spec: "currentPrice: DailyPrice.closePrice", "changeAmount...latest vs prev". 
+      // Screenshot shows "거래량 2.5M". API PriceInfo has "previousVolume". 
+      // Usually current volume is preferred but if not available, previous is ok. 
+      // Wait, User API Spec says "previousVolume" in PriceInfo example. 
+      // I will use that.
+      prevClose: data.priceInfo.previousClose,
+      market: data.companyInfo.market,
     );
 
-    final rnd = Random();
-    final chartData = List.generate(60, (i) {
-      final base = 900 + i * 6;
+    // 2. 차트 데이터 매핑
+    // API returns priceHistory which is List<ChartHistoryItem> (date, price, volume).
+    // StockChartCard expects List<ChartDataPoint> (price, volume).
+    // And xTicks.
+    final chartHistory = data.chartData.priceHistory;
+    final chartDataPoints = chartHistory.map((e) {
       return ChartDataPoint(
-        price: base + rnd.nextDouble() * 80 - 40,
-        volume: 1000000 + rnd.nextDouble() * 5000000,
+        price: (e.price ?? 0).toDouble(), // API price is int?
+        volume: (e.volume ?? 0).toDouble(),
       );
-    });
-    const xTicks = ['12.24', '1.22', '2.20', '3.20', '4.19'];
+    }).toList();
 
-    const basicInfoData = StockBasicInfoData(
-      marketCap: '1,234억',
-      per: '15.8배',
-      roe: '9.7%',
-      dividendYield: '-',
-      week52High: 1874,
-      week52Low: 1060,
-      currentPrice: 1275, 
+    // X Ticks generation (simple logic: take 5 evenly spaced dates)
+    List<String> xTicks = [];
+    if (chartHistory.isNotEmpty) {
+      final count = 5;
+      final step = (chartHistory.length / count).ceil();
+      for (int i = 0; i < chartHistory.length; i += step) {
+        // Date format "yyyy-MM-dd" -> "MM.dd"
+        // Assuming API date is "yyyy-MM-dd"
+        final dateStr = chartHistory[i].date;
+        if (dateStr.length >= 10) {
+            xTicks.add(dateStr.substring(5).replaceAll('-', '.'));
+        } else {
+            xTicks.add(dateStr);
+        }
+      }
+      // Add last date if not close enough
+       if (xTicks.isNotEmpty && chartHistory.last.date.length >= 10) {
+           final lastDate = chartHistory.last.date.substring(5).replaceAll('-', '.');
+           if (xTicks.last != lastDate) {
+               // Replace last or add? Usually replace to show range end.
+               xTicks[xTicks.length-1] = lastDate;
+           }
+       }
+    }
+
+    // 3. 기본 정보 데이터 매핑
+    final fi = data.financialInfo;
+    final basicInfoData = StockBasicInfoData(
+      marketCap: _formatEok(fi.marketCap), 
+      per: '${fi.per.toStringAsFixed(2)}배',
+      roe: '${fi.roe.toStringAsFixed(2)}%',
+      dividendYield: fi.dividendYield == 0 ? '-' : '${fi.dividendYield.toStringAsFixed(2)}%',
+      week52High: fi.week52Range.high,
+      week52Low: fi.week52Range.low,
+      currentPrice: data.priceInfo.currentPrice, 
     );
 
-    // [핵심 추가] 기업 정보 카드용 임시 데이터
-    const companyInfoData = StockCompanyInfoData(
-      sector: 'IT 부품',
-      debtRatio: '85%',
-      netProfitMargin: '9.4%',
-      market: 'KOSDAQ',
-      description: 'IT 부품 사업을 영위하는 기업으로, 최근 매출 신장세를 유지하고 있으며 재무 구조는 비교적 안정적인 편입니다.',
+    // 4. 기업 정보 데이터 매핑
+    final ci = data.companyInfo;
+    final companyInfoData = StockCompanyInfoData(
+      sector: ci.sector,
+      debtRatio: '${ci.debtRate.toStringAsFixed(2)}%',
+      netProfitMargin: '${ci.netProfitMargin.toStringAsFixed(2)}%',
+      market: ci.market,
+      description: data.companyDescription,
     );
 
     return ListView(
@@ -58,17 +101,40 @@ class OverviewTab extends StatelessWidget {
         StockHeader(data: headerData),
         const SizedBox(height: 16),
         StockChartCard(
-          chartData: chartData,
+          chartData: chartDataPoints,
           xTicks: xTicks,
-          periodLabel: '지난 6개월 기준',
+          periodLabel: '지난 3개월 기준', // Updated label
         ),
         const SizedBox(height: 24),
         StockBasicInfoCard(data: basicInfoData),
         const SizedBox(height: 16),
-        
-        // [핵심 수정] #4 기업 정보 카드 위젯 추가
         StockCompanyInfoCard(data: companyInfoData),
       ],
     );
+  }
+
+  String _formatEok(int marketCap) {
+      if (marketCap == 0) return '-';
+      // Assume unit is Won? Or is it 100 million (Eok)?
+      // Typical Korea Stock API returns market cap in "Won" (full number) or "million won" or "100 million won".
+      // Screenshot says "1,234억".
+      // If API returns raw won: 123400000000 -> 1,234억.
+      // If API returns million won: 123400 -> 1,234억.
+      // Usually strictly raw number.
+      // Let's assume raw won for now.
+      // 1 억 = 100,000,000 (10^8).
+      final eok = marketCap / 100000000;
+      return '${_formatInt(eok.round())}억';
+  }
+
+  String _formatInt(int n) {
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+        final posFromEnd = s.length - i;
+        buf.write(s[i]);
+        if (posFromEnd > 1 && posFromEnd % 3 == 1) buf.write(',');
+    }
+    return buf.toString();
   }
 }
