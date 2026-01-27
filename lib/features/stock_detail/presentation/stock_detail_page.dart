@@ -59,7 +59,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
               index: _selectedTabIndex,
               children: [
                 OverviewTab(overview: _overviewData),
-                const DailyPriceTab(),
+                DailyPriceTab(stockCode: widget.stockCode),
                 FinancialsTab(
                   stockName: stockName,
                   stockCode: widget.stockCode,
