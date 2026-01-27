@@ -1,6 +1,7 @@
 import 'package:ssogssog_flutter/core/network/api_client.dart';
 import 'package:ssogssog_flutter/features/stock_detail/data/model/stock_overview_model.dart';
 import 'package:ssogssog_flutter/features/stock_detail/data/model/daily_price_model.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/model/financials_model.dart';
 
 class StockDetailRepository {
   final ApiClient _apiClient = ApiClient();
@@ -45,6 +46,25 @@ class StockDetailRepository {
       }
     } catch (e) {
       print('Daily Price Exception: $e');
+      return null;
+    }
+  }
+  Future<FinancialsResult?> getFinancials(String stockCode) async {
+    try {
+      final response = await _apiClient.dio.get(
+        '/stock/$stockCode/financials',
+      );
+
+      final apiResponse = FinancialsResponse.fromJson(response.data);
+
+      if (apiResponse.isSuccess) {
+        return apiResponse.result;
+      } else {
+        print('Financials API Error: ${apiResponse.message}');
+        return null;
+      }
+    } catch (e) {
+      print('Financials Exception: $e');
       return null;
     }
   }

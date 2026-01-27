@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/model/financials_model.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/repository/stock_detail_repository.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/financial_stability_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/financial_summary_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/performance_chart_card.dart';
 
 /// 종목 상세 페이지의 '재무' 탭 UI 전체를 담고 있는 위젯
-class FinancialsTab extends StatelessWidget {
+class FinancialsTab extends StatefulWidget {
   final String stockName;
   final String stockCode;
 
@@ -15,56 +18,121 @@ class FinancialsTab extends StatelessWidget {
   });
 
   @override
+  State<FinancialsTab> createState() => _FinancialsTabState();
+}
+
+class _FinancialsTabState extends State<FinancialsTab> with AutomaticKeepAliveClientMixin {
+  final StockDetailRepository _repository = StockDetailRepository();
+  FinancialsResult? _financialsData;
+  bool _isLoading = true;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFinancials();
+  }
+
+  Future<void> _fetchFinancials() async {
+    setState(() => _isLoading = true);
+    final data = await _repository.getFinancials(widget.stockCode);
+    if (mounted) {
+      setState(() {
+        _financialsData = data;
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _formatEok(double value) {
+    return '${NumberFormat('#,###').format(value.round())}억';
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final theme = Theme.of(context);
 
-    // TODO: 실제 데이터 모델을 외부에서 전달받아야 합니다.
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_financialsData == null) {
+      return const Center(child: Text('재무 정보를 불러올 수 없습니다.'));
+    }
+
+    final summary = _financialsData!.summary;
+    final performance = _financialsData!.performance;
+    final stability = _financialsData!.stability;
+
     final List<FinancialMetric> summaryMetrics = [
-      const FinancialMetric(
+      FinancialMetric(
         name: 'PER',
-        displayValue: '15.8배',
-        rawValue: 15.8,
+        displayValue: '${summary.per.toStringAsFixed(2)}배',
+        rawValue: summary.per,
         type: FinancialMetricType.per,
       ),
-      const FinancialMetric(
+      FinancialMetric(
         name: 'ROE',
-        displayValue: '9.7%',
-        rawValue: 9.7,
+        displayValue: '${summary.roe.toStringAsFixed(2)}%',
+        rawValue: summary.roe,
         type: FinancialMetricType.roe,
       ),
-      const FinancialMetric(
+      FinancialMetric(
         name: '배당수익률',
-        displayValue: '2.1%',
-        rawValue: 2.1,
+        displayValue: '${summary.dividendYield.toStringAsFixed(2)}%',
+        rawValue: summary.dividendYield,
         type: FinancialMetricType.dividendYield,
       ),
-      const FinancialMetric(
+      FinancialMetric(
         name: '부채비율',
-        displayValue: '85%',
-        rawValue: 85.0,
+        displayValue: '${summary.debtRatio.toStringAsFixed(2)}%',
+        rawValue: summary.debtRatio,
         type: FinancialMetricType.debtRatio,
+      ),
+      // PBR은 API에 없으므로 임시 처리 (요청사항)
+      const FinancialMetric(
+        name: 'PBR',
+        displayValue: '-',
+        rawValue: 0.0,
+        type: FinancialMetricType.pbr,
       ),
     ];
 
-    const annualData = [
-      PerformanceDataPoint(period: '22년', revenue: 1792, operatingProfit: -92, netIncome: -110),
-      PerformanceDataPoint(period: '23년', revenue: 1869, operatingProfit: 319, netIncome: 280),
-      PerformanceDataPoint(period: '24년', revenue: 2339, operatingProfit: 157, netIncome: 120),
-    ];
+    final annualData = performance.annual.map((item) {
+      return PerformanceDataPoint(
+        period: '${item.year}년',
+        revenue: item.revenue / 100000000, // 원 단위를 억 단위로 변환
+        operatingProfit: item.operatingProfit / 100000000,
+        netIncome: item.netIncome / 100000000,
+      );
+    }).toList();
 
-    const quarterlyData = [
-      PerformanceDataPoint(period: '23.1Q', revenue: 450, operatingProfit: 80, netIncome: 70),
-      PerformanceDataPoint(period: '23.2Q', revenue: 460, operatingProfit: 85, netIncome: 75),
-      PerformanceDataPoint(period: '23.3Q', revenue: 470, operatingProfit: 90, netIncome: 80),
-      PerformanceDataPoint(period: '23.4Q', revenue: 489, operatingProfit: 64, netIncome: 55),
-    ];
+    final quarterlyData = performance.quarterly.map((item) {
+      return PerformanceDataPoint(
+        period: '${item.year.toString().substring(2)}.${item.quarter}',
+        revenue: item.revenue / 100000000,
+        operatingProfit: item.operatingProfit / 100000000,
+        netIncome: item.netIncome / 100000000,
+      );
+    }).toList();
 
-    const stabilityData = FinancialStabilityData(
-      totalAssetsStr: '4,567억',
-      totalLiabilitiesStr: '2,989억',
-      totalEquityStr: '1,578억',
-      totalLiabilitiesVal: 2989,
-      totalEquityVal: 1578,
+    // 자산총계 = 부채총계 + 자본총계
+    final totalAssetsVal = stability.totalLiabilities + stability.totalEquity;
+    
+    // 억 단위 변환
+    final totalAssetsStr = _formatEok(totalAssetsVal / 100000000);
+    final totalLiabilitiesStr = _formatEok(stability.totalLiabilities / 100000000);
+    final totalEquityStr = _formatEok(stability.totalEquity / 100000000);
+
+    final stabilityData = FinancialStabilityData(
+      totalAssetsStr: totalAssetsStr,
+      totalLiabilitiesStr: totalLiabilitiesStr,
+      totalEquityStr: totalEquityStr,
+      totalLiabilitiesVal: stability.totalLiabilities,
+      totalEquityVal: stability.totalEquity,
     );
 
     return ListView(
@@ -89,7 +157,7 @@ class FinancialsTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '$stockName  $stockCode',
+                  '${widget.stockName}  ${widget.stockCode}',
                   style: theme.textTheme.labelMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: theme.colorScheme.onSurface.withOpacity(0.70),
@@ -104,11 +172,13 @@ class FinancialsTab extends StatelessWidget {
         FinancialSummaryCard(metrics: summaryMetrics),
         const SizedBox(height: 16),
 
-        PerformanceChartCard(
-          annualData: annualData,
-          quarterlyData: quarterlyData,
-        ),
-        const SizedBox(height: 16),
+        if (annualData.isNotEmpty || quarterlyData.isNotEmpty)
+          PerformanceChartCard(
+            annualData: annualData,
+            quarterlyData: quarterlyData,
+          ),
+        if (annualData.isNotEmpty || quarterlyData.isNotEmpty)
+          const SizedBox(height: 16),
 
         FinancialStabilityCard(data: stabilityData),
       ],
