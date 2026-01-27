@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:ssogssog_flutter/features/stock_detail/data/model/stock_overview_model.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_basic_info_card.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/stock_chart_card.dart';
@@ -129,13 +130,6 @@ class OverviewTab extends StatelessWidget {
   }
 
   String _formatInt(int n) {
-    final s = n.toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-        final posFromEnd = s.length - i;
-        buf.write(s[i]);
-        if (posFromEnd > 1 && posFromEnd % 3 == 1) buf.write(',');
-    }
-    return buf.toString();
+    return NumberFormat('#,###').format(n);
   }
 }
