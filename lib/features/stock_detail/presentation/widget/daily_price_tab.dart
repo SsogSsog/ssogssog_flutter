@@ -75,7 +75,7 @@ class _DailyPriceTabState extends State<DailyPriceTab> with AutomaticKeepAliveCl
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // KeepAlive가 있다면 필요하지만 여기선 없음
+    super.build(context); // AutomaticKeepAliveClientMixin 필수 호출
     final theme = Theme.of(context);
 
     if (_dailyPrices.isEmpty && _loading) {

@@ -219,7 +219,7 @@ class _NewsAnnouncementsTabState extends State<NewsAnnouncementsTab> with Automa
 
           final item = _announcementList[index];
           // DART 공시 링크 생성 (receiptNo 활용)
-          final link = 'http://dart.fss.or.kr/dsaf001/main.do?rcpNo=${item.receiptNo}';
+          final link = 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${item.receiptNo}';
 
           return InkWell(
             onTap: () => _onLinkTap(link),
