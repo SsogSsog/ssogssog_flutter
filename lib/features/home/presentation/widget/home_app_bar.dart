@@ -6,7 +6,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const HomeAppBar({super.key});
 
   // 원하는 앱바 높이 한 번에 관리
-  static const double _appBarHeight = 96;
+  static const double _appBarHeight = 80;
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +17,16 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
       toolbarHeight: _appBarHeight,
       centerTitle: false,
-      titleSpacing: 16,
+      titleSpacing: 0,
 
-      title: Image.asset(
-        'assets/images/logo/ssogssog_logo.png',
-        height: 80,
-        fit: BoxFit.contain,
+      title: Transform.translate(
+        offset: const Offset(-20, 0), // 왼쪽으로 더 강제로 이동
+        child: Image.asset(
+          'assets/images/logo/text_logo.png',
+          height: 150, // 높이는 충분히 주어 fit에 의해 꽉 차게 만듦
+          fit: BoxFit.contain,
+          alignment: Alignment.centerLeft,
+        ),
       ),
       actions: [
         IconButton(
