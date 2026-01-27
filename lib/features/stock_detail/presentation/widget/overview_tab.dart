@@ -40,23 +40,32 @@ class OverviewTab extends StatelessWidget {
     // API returns priceHistory which is List<ChartHistoryItem> (date, price, volume).
     // StockChartCard expects List<ChartDataPoint> (price, volume).
     // And xTicks.
-    final chartHistory = data.chartData.priceHistory;
-    final chartDataPoints = chartHistory.map((e) {
+    // 2. 차트 데이터 매핑
+    final priceHistory = data.chartData.priceHistory;
+    final volumeHistory = data.chartData.volumeHistory;
+    
+    // Create a map for quick lookup of volume by date
+    final volumeMap = {
+      for (var item in volumeHistory) item.date: item.volume ?? 0,
+    };
+
+    final chartDataPoints = priceHistory.map((e) {
+      final vol = volumeMap[e.date] ?? 0;
       return ChartDataPoint(
-        price: (e.price ?? 0).toDouble(), // API price is int?
-        volume: (e.volume ?? 0).toDouble(),
+        price: (e.price ?? 0).toDouble(),
+        volume: vol.toDouble(),
       );
     }).toList();
 
     // X Ticks generation (simple logic: take 5 evenly spaced dates)
     List<String> xTicks = [];
-    if (chartHistory.isNotEmpty) {
+    if (priceHistory.isNotEmpty) {
       final count = 5;
-      final step = (chartHistory.length / count).ceil();
-      for (int i = 0; i < chartHistory.length; i += step) {
+      final step = (priceHistory.length / count).ceil();
+      for (int i = 0; i < priceHistory.length; i += step) {
         // Date format "yyyy-MM-dd" -> "MM.dd"
         // Assuming API date is "yyyy-MM-dd"
-        final dateStr = chartHistory[i].date;
+        final dateStr = priceHistory[i].date;
         if (dateStr.length >= 10) {
             xTicks.add(dateStr.substring(5).replaceAll('-', '.'));
         } else {
@@ -64,8 +73,8 @@ class OverviewTab extends StatelessWidget {
         }
       }
       // Add last date if not close enough
-       if (xTicks.isNotEmpty && chartHistory.last.date.length >= 10) {
-           final lastDate = chartHistory.last.date.substring(5).replaceAll('-', '.');
+       if (xTicks.isNotEmpty && priceHistory.last.date.length >= 10) {
+           final lastDate = priceHistory.last.date.substring(5).replaceAll('-', '.');
            if (xTicks.last != lastDate) {
                // Replace last or add? Usually replace to show range end.
                xTicks[xTicks.length-1] = lastDate;
@@ -115,16 +124,8 @@ class OverviewTab extends StatelessWidget {
 
   String _formatEok(int marketCap) {
       if (marketCap == 0) return '-';
-      // Assume unit is Won? Or is it 100 million (Eok)?
-      // Typical Korea Stock API returns market cap in "Won" (full number) or "million won" or "100 million won".
-      // Screenshot says "1,234억".
-      // If API returns raw won: 123400000000 -> 1,234억.
-      // If API returns million won: 123400 -> 1,234억.
-      // Usually strictly raw number.
-      // Let's assume raw won for now.
-      // 1 억 = 100,000,000 (10^8).
-      final eok = marketCap / 100000000;
-      return '${_formatInt(eok.round())}억';
+      // API returns marketCap in units of 100 Million (Eok)
+      return '${_formatInt(marketCap)}억';
   }
 
   String _formatInt(int n) {
