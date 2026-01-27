@@ -135,12 +135,7 @@ class GuruStrategiesPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GestureDetector(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ScreenerResultPage(request: request),
-            ),
-          );
+          context.push('/screener/result', extra: request);
         },
         child: Container(
           padding: const EdgeInsets.all(20),
