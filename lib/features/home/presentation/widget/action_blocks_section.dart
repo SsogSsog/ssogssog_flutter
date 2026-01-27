@@ -41,13 +41,17 @@ class ActionBlocksSection extends StatelessWidget {
               child: Column(
                 children: [
                   Expanded(
-                    child: _SmallBlock(
-                      color: const Color(0xFFB1EBBC),
-                      title: '스마트 필터',
-                      subtitle: '초보 추천 조합',
-                      imagePath: 'assets/images/home/sprout.png',
-                      textColor: Colors.black87,
-                      imageSize: 40,
+                    child: InkWell(
+                      onTap: () => context.push('/guru-strategies'),
+                      borderRadius: BorderRadius.circular(24),
+                      child: const _SmallBlock(
+                        color: Color(0xFFB1EBBC),
+                        title: '스마트 필터',
+                        subtitle: '초보 추천 조합',
+                        imagePath: 'assets/images/home/sprout.png',
+                        textColor: Colors.black87,
+                        imageSize: 40,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 10),

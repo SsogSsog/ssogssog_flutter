@@ -12,6 +12,7 @@ import 'package:ssogssog_flutter/features/themes/presentation/theme_detail_page.
 import 'package:ssogssog_flutter/features/themes/presentation/themes_page.dart';
 import 'package:ssogssog_flutter/features/vault/presentation/vault_page.dart';
 import 'package:ssogssog_flutter/features/search/presentation/search_page.dart';
+import 'package:ssogssog_flutter/features/home/presentation/guru_strategies_page.dart';
 
 final GoRouter router = GoRouter(
   initialLocation: '/',
@@ -93,6 +94,10 @@ final GoRouter router = GoRouter(
         final themeItem = extra is ThemeItem ? extra : null;
         return ThemeDetailPage(themeName: themeName, themeItem: themeItem);
       },
+    ),
+    GoRoute(
+      path: '/guru-strategies',
+      builder: (context, state) => const GuruStrategiesPage(),
     ),
     // Pushed Routes (Slide Transition)
     GoRoute(
