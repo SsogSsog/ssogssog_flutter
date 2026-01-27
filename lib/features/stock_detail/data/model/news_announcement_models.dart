@@ -1,17 +1,42 @@
+/// 공통 응답 래퍼
+class ApiResponse<T> {
+  final bool isSuccess;
+  final String code;
+  final String message;
+  final T result;
+
+  ApiResponse({
+    required this.isSuccess,
+    required this.code,
+    required this.message,
+    required this.result,
+  });
+
+  factory ApiResponse.fromJson(
+    Map<String, dynamic> json,
+    T Function(dynamic json) fromJsonT,
+  ) {
+    return ApiResponse(
+      isSuccess: json['isSuccess'] ?? false,
+      code: json['code'] ?? '',
+      message: json['message'] ?? '',
+      result: fromJsonT(json['result'] ?? {}),
+    );
+  }
+}
+
 /// 백엔드 PageDTO 대응
 class PageDTO<T> {
   final List<T> content;
   final int currentPage;
   final int size;
   final bool hasNext;
-  final int totalContentCount;
 
   PageDTO({
     required this.content,
     required this.currentPage,
     required this.size,
     required this.hasNext,
-    required this.totalContentCount,
   });
 
   factory PageDTO.fromJson(
@@ -24,7 +49,6 @@ class PageDTO<T> {
       currentPage: json['currentPage'] as int? ?? 0,
       size: json['size'] as int? ?? 0,
       hasNext: json['hasNext'] as bool? ?? false,
-      totalContentCount: json['totalContentCount'] as int? ?? 0,
     );
   }
 }
@@ -35,16 +59,10 @@ class NewsResponseItem {
   final String link;
   final String pubDate;
 
-  // 클라이언트 UI용 추가 필드 (API 연동 전까지 Mock용, 추후 필요 시 제거 or 별도 관리)
-  final String source; 
-  final String? thumbnail;
-
   NewsResponseItem({
     required this.title,
     required this.link,
     required this.pubDate,
-    this.source = 'Unknown',
-    this.thumbnail,
   });
 
   factory NewsResponseItem.fromJson(Map<String, dynamic> json) {
@@ -52,8 +70,6 @@ class NewsResponseItem {
       title: json['title'] as String? ?? '',
       link: json['link'] as String? ?? '',
       pubDate: json['pubDate'] as String? ?? '',
-      source: json['source'] as String? ?? 'Unknown', // API에는 없지만 UI용
-      thumbnail: json['thumbnail'] as String?, // API에는 없지만 UI용
     );
   }
 }
@@ -64,9 +80,6 @@ class DisclosureItemResponse {
   final String receiptNo;  // 접수번호
   final String submitter;  // 제출인
   final String date;       // 접수일자 (YYYYMMDD)
-
-  // 클라이언트 UI용 추가 필드 (유형 태그 파싱 로직 등은 추후 추가)
-  String get tag => '[공시]'; // 임시 태그 로직
 
   DisclosureItemResponse({
     required this.reportName,

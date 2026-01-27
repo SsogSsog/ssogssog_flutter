@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/model/stock_overview_model.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/repository/stock_detail_repository.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/daily_price_tab.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/financials_tab.dart';
 import 'package:ssogssog_flutter/features/stock_detail/presentation/widget/overview_tab.dart';
@@ -16,11 +18,32 @@ class StockDetailPage extends StatefulWidget {
 class _StockDetailPageState extends State<StockDetailPage> {
   int _selectedTabIndex = 0;
   final List<String> tabNames = ['개요', '일별시세', '재무', '뉴스/공시'];
+  
+  final StockDetailRepository _repository = StockDetailRepository();
+  StockOverview? _overviewData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOverview();
+  }
+
+  Future<void> _fetchOverview() async {
+    setState(() => _isLoading = true);
+    final data = await _repository.getStockOverview(widget.stockCode);
+    if (mounted) {
+      setState(() {
+        _overviewData = data;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 실제 종목 데이터를 stockCode를 이용해 가져와야 함
-    const String stockName = "큐로홀딩스";
+    // 로딩 중이거나 데이터가 없으면 기본값 또는 로딩 표시
+    final stockName = _overviewData?.stockName ?? '';
 
     return Scaffold(
       appBar: AppBar(
@@ -28,20 +51,22 @@ class _StockDetailPageState extends State<StockDetailPage> {
           '$stockName (${widget.stockCode})',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        titleSpacing: 0, // 타이틀의 왼쪽 기본 여백 제거
+        titleSpacing: 0,
       ),
-      body: IndexedStack(
-        index: _selectedTabIndex,
-        children: [
-          const OverviewTab(),
-          const DailyPriceTab(),
-          FinancialsTab(
-            stockName: stockName,
-            stockCode: widget.stockCode,
-          ),
-          const NewsAnnouncementsTab(),
-        ],
-      ),
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : IndexedStack(
+              index: _selectedTabIndex,
+              children: [
+                OverviewTab(overview: _overviewData),
+                DailyPriceTab(stockCode: widget.stockCode),
+                FinancialsTab(
+                  stockName: stockName,
+                  stockCode: widget.stockCode,
+                ),
+                NewsAnnouncementsTab(stockCode: widget.stockCode),
+              ],
+            ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }

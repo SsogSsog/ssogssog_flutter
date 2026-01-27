@@ -1,35 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // [핵심 추가]
-
-// 일별시세 데이터 모델
-class DailyPriceData {
-  final String date;
-  final int closePrice;
-  final int change;
-  final double changeRate;
-  final int volume;
-
-  const DailyPriceData({
-    required this.date,
-    required this.closePrice,
-    required this.change,
-    required this.changeRate,
-    required this.volume,
-  });
-}
+import 'package:intl/intl.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/model/daily_price_model.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/repository/stock_detail_repository.dart';
 
 /// 종목 상세 - '일별시세' 탭 위젯
 class DailyPriceTab extends StatefulWidget {
-  const DailyPriceTab({super.key});
+  final String stockCode;
+
+  const DailyPriceTab({
+    super.key,
+    required this.stockCode,
+  });
 
   @override
   State<DailyPriceTab> createState() => _DailyPriceTabState();
 }
 
-class _DailyPriceTabState extends State<DailyPriceTab> {
-  final List<DailyPriceData> _dailyPrices = [];
+class _DailyPriceTabState extends State<DailyPriceTab> with AutomaticKeepAliveClientMixin {
+  final List<DailyPriceItem> _dailyPrices = [];
   final ScrollController _scrollController = ScrollController();
+  final StockDetailRepository _repository = StockDetailRepository();
   bool _loading = false;
+  bool _hasNext = true;
+  int _page = 0;
+  final int _size = 20;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -37,34 +34,37 @@ class _DailyPriceTabState extends State<DailyPriceTab> {
     _loadMoreData();
 
     _scrollController.addListener(() {
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 80) {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
         _loadMoreData();
       }
     });
   }
 
   Future<void> _loadMoreData() async {
-    if (_loading) return;
+    if (_loading || !_hasNext) return;
+    
     setState(() => _loading = true);
 
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    final List<DailyPriceData> newItems = List.generate(20, (index) {
-      final sign = index % 3 == 0 ? -1 : 1;
-      return DailyPriceData(
-        date: '04.${(5 - index % 5).toString().padLeft(2, '0')}',
-        closePrice: 19070 + (index * 100 * sign),
-        change: -640 + (index * 50 * sign),
-        changeRate: -3.00 + (index * 0.5 * sign),
-        volume: 4265988 + (index * 10000),
-      );
-    });
+    final result = await _repository.getDailyPrices(
+      widget.stockCode,
+      page: _page,
+      size: _size,
+    );
 
     if (!mounted) return;
-    setState(() {
-      _dailyPrices.addAll(newItems);
-      _loading = false;
-    });
+
+    if (result != null) {
+      setState(() {
+        _dailyPrices.addAll(result.content);
+        _hasNext = result.hasNext;
+        _page++;
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -75,7 +75,16 @@ class _DailyPriceTabState extends State<DailyPriceTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin 필수 호출
     final theme = Theme.of(context);
+
+    if (_dailyPrices.isEmpty && _loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_dailyPrices.isEmpty && !_loading) {
+      return const Center(child: Text('데이터가 없습니다.'));
+    }
 
     return Column(
       children: [
@@ -83,7 +92,7 @@ class _DailyPriceTabState extends State<DailyPriceTab> {
         Expanded(
           child: ListView.separated(
             controller: _scrollController,
-            itemCount: _dailyPrices.length + (_loading ? 1 : 0),
+            itemCount: _dailyPrices.length + (_hasNext ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == _dailyPrices.length) {
                 return Padding(
@@ -124,10 +133,10 @@ class _DailyHeader extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Expanded(flex: 2, child: _HeaderText('날짜', align: TextAlign.left)),
+          Expanded(flex: 3, child: _HeaderText('날짜', align: TextAlign.left)),
           Expanded(flex: 3, child: _HeaderText('종가', align: TextAlign.right)),
           Expanded(flex: 4, child: _HeaderText('전일대비', align: TextAlign.right)),
-          Expanded(flex: 4, child: _HeaderText('거래량', align: TextAlign.right)),
+          Expanded(flex: 3, child: _HeaderText('거래량', align: TextAlign.right)),
         ],
       ),
     );
@@ -154,29 +163,37 @@ class _HeaderText extends StatelessWidget {
 }
 
 class _DailyPriceRow extends StatelessWidget {
-  final DailyPriceData data;
+  final DailyPriceItem data;
 
   const _DailyPriceRow({required this.data});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isUp = data.change > 0;
-    final isDown = data.change < 0;
+    final isUp = data.changePrice > 0;
+    final isDown = data.changePrice < 0;
     final Color color = isUp ? const Color(0xFFFF6B6B) : (isDown ? const Color(0xFF4D96FF) : theme.colorScheme.onSurface.withAlpha((0.55 * 255).round()));
     final IconData icon = isUp ? Icons.arrow_drop_up : (isDown ? Icons.arrow_drop_down : Icons.remove);
 
-    final String changeText = _formatSignedInt(data.change);
-    final String priceText = '${_formatInt(data.closePrice)}원';
+    final String changeText = _formatSignedInt(data.changePrice);
+    final String priceText = _formatInt(data.closePrice);
     final String volumeText = _formatInt(data.volume);
+
+    // 날짜 포맷 변경 (2025-04-05 -> 04.05)
+    String formattedDate = data.date;
+    try {
+      if (data.date.length >= 10) {
+        formattedDate = data.date.substring(5).replaceAll('-', '.');
+      }
+    } catch (_) {}
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           Expanded(
-            flex: 2,
-            child: Text(data.date, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withAlpha((0.85 * 255).round()), fontWeight: FontWeight.w400)),
+            flex: 3,
+            child: Text(formattedDate, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withAlpha((0.85 * 255).round()), fontWeight: FontWeight.w400)),
           ),
           Expanded(
             flex: 3,
@@ -186,11 +203,11 @@ class _DailyPriceRow extends StatelessWidget {
             flex: 4,
             child: Align(
               alignment: Alignment.centerRight,
-              child: _ChangeBlock(theme: theme, color: color, icon: icon, changeText: changeText, rateText: '(${_formatSignedRate(data.changeRate)}%)'),
+              child: _ChangeBlock(theme: theme, color: color, icon: icon, changeText: changeText, rateText: '${_formatSignedRate(data.changeRate)}%'),
             ),
           ),
           Expanded(
-            flex: 4,
+            flex: 3,
             child: Text(volumeText, textAlign: TextAlign.right, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withAlpha((0.78 * 255).round()), fontWeight: FontWeight.w500)),
           ),
         ],
