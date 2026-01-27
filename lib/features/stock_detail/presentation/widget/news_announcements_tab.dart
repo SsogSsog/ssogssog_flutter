@@ -1,93 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:ssogssog_flutter/core/widget/pill_toggle.dart';
 import 'package:ssogssog_flutter/features/stock_detail/data/model/news_announcement_models.dart';
+import 'package:ssogssog_flutter/features/stock_detail/data/repository/stock_detail_repository.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class NewsAnnouncementsTab extends StatefulWidget {
-  const NewsAnnouncementsTab({super.key});
+  final String stockCode;
+
+  const NewsAnnouncementsTab({
+    super.key,
+    required this.stockCode,
+  });
 
   @override
   State<NewsAnnouncementsTab> createState() => _NewsAnnouncementsTabState();
 }
 
-class _NewsAnnouncementsTabState extends State<NewsAnnouncementsTab> {
+class _NewsAnnouncementsTabState extends State<NewsAnnouncementsTab> with AutomaticKeepAliveClientMixin {
+  final StockDetailRepository _repository = StockDetailRepository();
+
   // true: 뉴스 탭, false: 공시 탭
   bool _isNews = true;
 
-  // [Mock Data] 뉴스 데이터
-  final List<NewsResponseItem> _newsList = [
-    NewsResponseItem(
-      title: '큐로홀딩스, 3분기 영업이익 전년비 15% 증가... "IT 부품 호조"',
-      link: 'https://news.naver.com/...',
-      pubDate: '1시간 전',
-      source: '이데일리',
-      thumbnail: 'https://via.placeholder.com/80',
-    ),
-    NewsResponseItem(
-      title: '[특징주] 큐로홀딩스, 신규 계약 체결 소식에 강세',
-      link: 'https://news.naver.com/...',
-      pubDate: '3시간 전',
-      source: '한국경제',
-      thumbnail: '',
-    ),
-    NewsResponseItem(
-      title: '반도체 부품주 동반 상승... 큐로홀딩스도 5%대 급등',
-      link: 'https://news.naver.com/...',
-      pubDate: '5시간 전',
-      source: '매일경제',
-      thumbnail: 'https://via.placeholder.com/80',
-    ),
-    NewsResponseItem(
-      title: '큐로홀딩스 "주주가치 제고 위해 자사주 매입 검토"',
-      link: 'https://news.naver.com/...',
-      pubDate: '어제',
-      source: '아시아경제',
-      thumbnail: '',
-    ),
-    NewsResponseItem(
-      title: '글로벌 공급망 이슈 완화 기대감... 관련주 주목',
-      link: 'https://news.naver.com/...',
-      pubDate: '2023.12.20',
-      source: '파이낸셜뉴스',
-      thumbnail: 'https://via.placeholder.com/80',
-    ),
-  ];
+  // News State
+  final List<NewsResponseItem> _newsList = [];
+  bool _isNewsLoading = false;
+  int _newsPage = 0;
+  bool _newsHasNext = true;
 
-  // [Mock Data] 공시 데이터
-  final List<DisclosureItemResponse> _announcementList = [
-    DisclosureItemResponse(
-      reportName: '단일판매ㆍ공급계약체결',
-      receiptNo: '20231224...',
-      submitter: '큐로홀딩스',
-      date: '2023.12.24',
-    ),
-    DisclosureItemResponse(
-      reportName: '분기보고서 (2023.09)',
-      receiptNo: '20231114...',
-      submitter: '큐로홀딩스',
-      date: '2023.11.14',
-    ),
-    DisclosureItemResponse(
-      reportName: '주주총회소집결의',
-      receiptNo: '20231010...',
-      submitter: '큐로홀딩스',
-      date: '2023.10.10',
-    ),
-    DisclosureItemResponse(
-      reportName: '최대주주등소유주식변동신고서',
-      receiptNo: '20230928...',
-      submitter: '큐로홀딩스',
-      date: '2023.09.28',
-    ),
-    DisclosureItemResponse(
-      reportName: '풍문 또는 보도에 대한 해명',
-      receiptNo: '20230915...',
-      submitter: '큐로홀딩스',
-      date: '2023.09.15',
-    ),
-  ];
+  // Disclosure State
+  final List<DisclosureItemResponse> _announcementList = [];
+  bool _isDisclosureLoading = false;
+  int _disclosurePage = 0;
+  bool _disclosureHasNext = true;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNews();
+    _fetchDisclosures();
+  }
+
+  Future<void> _fetchNews() async {
+    if (_isNewsLoading || !_newsHasNext) return;
+    setState(() => _isNewsLoading = true);
+
+    final result = await _repository.getNews(widget.stockCode, page: _newsPage);
+    
+    if (mounted) {
+      if (result != null) {
+        setState(() {
+          _newsList.addAll(result.content);
+          _newsHasNext = result.hasNext;
+          if (result.hasNext) _newsPage++;
+        });
+      }
+      setState(() => _isNewsLoading = false);
+    }
+  }
+
+  Future<void> _fetchDisclosures() async {
+    if (_isDisclosureLoading || !_disclosureHasNext) return;
+    setState(() => _isDisclosureLoading = true);
+
+    final result = await _repository.getDisclosures(widget.stockCode, page: _disclosurePage);
+
+    if (mounted) {
+      if (result != null) {
+        setState(() {
+          _announcementList.addAll(result.content);
+          _disclosureHasNext = result.hasNext;
+          if (result.hasNext) _disclosurePage++;
+        });
+      }
+      setState(() => _isDisclosureLoading = false);
+    }
+  }
+
+  void _onLinkTap(String url) async {
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Column(
       children: [
         _buildHeader(),
@@ -129,128 +130,145 @@ class _NewsAnnouncementsTabState extends State<NewsAnnouncementsTab> {
   }
 
   Widget _buildNewsList() {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      itemCount: _newsList.length,
-      separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
-      itemBuilder: (context, index) {
-        final item = _newsList[index];
-        final hasImage = item.thumbnail?.isNotEmpty ?? false;
+    if (_newsList.isEmpty) {
+      return _isNewsLoading
+          ? const Center(child: CircularProgressIndicator())
+          : const Center(child: Text('관련 뉴스가 없습니다.'));
+    }
 
-        return InkWell(
-          onTap: () {
-            // TODO: 뉴스 상세 페이지 또는 웹뷰로 이동
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (!_isNewsLoading &&
+            _newsHasNext &&
+            scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+          _fetchNews();
+        }
+        return false;
+      },
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+        itemCount: _newsList.length + (_newsHasNext ? 1 : 0),
+        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        itemBuilder: (context, index) {
+          if (index == _newsList.length) {
+            return const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()));
+          }
+
+          final item = _newsList[index];
+
+          return InkWell(
+            onTap: () => _onLinkTap(item.link),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title.replaceAll('<b>', '').replaceAll('</b>', '').replaceAll('&quot;', '"'),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
                     children: [
+                      // Source가 없으므로 생략하거나 기본값 표시
                       Text(
-                        item.title,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          height: 1.3,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            item.source,
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(width: 1, height: 10, color: Colors.grey[300]),
-                          const SizedBox(width: 8),
-                          Text(
-                            item.pubDate,
-                            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                          ),
-                        ],
+                        item.pubDate,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
                     ],
                   ),
-                ),
-                if (hasImage) ...[
-                  const SizedBox(width: 16),
-                  Container(
-                    width: 72,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[200],
-                    ),
-                    child: const Icon(Icons.image_outlined, color: Colors.grey),
-                  ),
                 ],
-              ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildAnnouncementList() {
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      itemCount: _announcementList.length,
-      separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
-      itemBuilder: (context, index) {
-        final item = _announcementList[index];
+    if (_announcementList.isEmpty) {
+      return _isDisclosureLoading
+          ? const Center(child: CircularProgressIndicator())
+          : const Center(child: Text('관련 공시가 없습니다.'));
+    }
 
-        return InkWell(
-          onTap: () {
-            // TODO: 공시 상세 페이지 또는 다트(DART) 웹뷰로 이동
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.tag,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF55A4ED), // 앱 메인 컬러
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.reportName,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          height: 1.3,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  item.date,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
-              ],
-            ),
-          ),
-        );
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (!_isDisclosureLoading &&
+            _disclosureHasNext &&
+            scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+          _fetchDisclosures();
+        }
+        return false;
       },
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+        itemCount: _announcementList.length + (_disclosureHasNext ? 1 : 0),
+        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFEEEEEE)),
+        itemBuilder: (context, index) {
+          if (index == _announcementList.length) {
+            return const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()));
+          }
+
+          final item = _announcementList[index];
+          // DART 공시 링크 생성 (receiptNo 활용)
+          final link = 'http://dart.fss.or.kr/dsaf001/main.do?rcpNo=${item.receiptNo}';
+
+          return InkWell(
+            onTap: () => _onLinkTap(link),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '[공시]',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF55A4ED), // 앱 메인 컬러
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.reportName,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            height: 1.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.submitter,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    item.date,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

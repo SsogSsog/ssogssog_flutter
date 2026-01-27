@@ -64,7 +64,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
                   stockName: stockName,
                   stockCode: widget.stockCode,
                 ),
-                const NewsAnnouncementsTab(),
+                NewsAnnouncementsTab(stockCode: widget.stockCode),
               ],
             ),
       bottomNavigationBar: _buildBottomNavigationBar(),
